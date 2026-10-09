@@ -1,13 +1,18 @@
 // Tela de entrada. Tem dois fluxos: login com senha e verificação
 // da conta no primeiro acesso.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Mail, Lock, Building2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useConstructionManagement } from '../context/construction-context';
 
 export function LoginPage() {
-  const { login, verifyAccountCode, pendingVerificationUser } = useConstructionManagement();
+  const { login, verifyAccountCode, pendingVerificationUser, activeUser } = useConstructionManagement();
   const navigate = useNavigate();
+
+  // quem já tem sessão válida vai direto pro painel, sem ver o formulário de login
+  useEffect(() => {
+    if (activeUser) navigate('/dashboard');
+  }, [activeUser, navigate]);
 
   // estado do formulário de login
   const [emailInput,    setEmailInput]    = useState('');

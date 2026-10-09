@@ -298,6 +298,8 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
 
   const [isInitializing,    setIsInitializing]    = useState(true);
   const [isSyncConnected,   setIsSyncConnected]   = useState(false);
+  // sobe a cada login: força uma nova carga dos dados mesmo que o usuário seja o mesmo da sessão salva
+  const [loadVersion, setLoadVersion] = useState(0);
 
   // o usuário logado fica salvo no localStorage, então continua logado depois de recarregar a página
   // (só vale se o token de login também estiver guardado)
@@ -405,7 +407,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     };
     load();
     return () => { cancelled = true; };
-  }, [activeUser?.id]);
+  }, [activeUser?.id, loadVersion]);
 
   // Cria notificação (uso interno)
 
@@ -495,6 +497,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
         setToken(res.token);
         setIsInitializing(true); // evita mostrar telas vazias enquanto os dados carregam
         setActiveUser(res.user);
+        setLoadVersion(v => v + 1); // garante a busca dos dados mesmo se já havia sessão salva
         return { success: true };
       }
       return { success: false, error: res.error || 'Erro desconhecido.' };
@@ -517,6 +520,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
         setToken(res.token);
         setIsInitializing(true);
         setActiveUser(res.user);
+        setLoadVersion(v => v + 1);
         setPendingVerificationUser(null);
         setPendingVerifyToken(null);
         return { success: true };
