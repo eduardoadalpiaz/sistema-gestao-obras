@@ -1,10 +1,8 @@
-/**
- * Expenses.tsx
- * Financial expense tracking screen — records, views and manages
- * all expenditures per construction project, with receipt attachment support.
- */
+// Controle de gastos: registra e acompanha as despesas de cada obra,
+// com anexo de comprovante.
 import { useState, useRef, useCallback } from 'react';
 import { useConstructionManagement, Expense, ExpenseCategory } from '../context/construction-context';
+import { prepareUpload, ACCEPTED_FILES } from '../utils/fileUpload';
 import {
   Plus, X, Trash2, Pencil, Receipt, Upload, Eye,
   TrendingUp, TrendingDown, DollarSign, Building2, FileImage, Search,
@@ -14,7 +12,7 @@ const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'Materiais', 'Equipamentos', 'Mão de obra', 'Transporte', 'Serviços', 'Outros',
 ];
 
-/** Tailwind classes for each expense category badge. */
+// Classes do Tailwind da etiqueta de cada categoria de gasto.
 const CATEGORY_BADGE_CLASSES: Record<ExpenseCategory, string> = {
   'Materiais':    'bg-blue-100 text-blue-700',
   'Equipamentos': 'bg-purple-100 text-purple-700',
@@ -56,7 +54,7 @@ export function Expenses() {
   const [receiptPreviewData, setReceiptPreviewData] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Filtered expense list ────────────────────────────────────────────────────
+  // Lista de gastos filtrada
 
   const filteredExpenses = expenses.filter(e => {
     const matchesProject = !selectedProjectId || e.obraId === selectedProjectId;
@@ -66,14 +64,17 @@ export function Expenses() {
     return matchesProject && matchesSearch;
   });
 
+  // total da lista filtrada, total geral e, se uma obra foi escolhida, quanto ela já gastou
   const filteredTotal   = filteredExpenses.reduce((sum, e) => sum + e.value, 0);
   const grandTotal      = expenses.reduce((sum, e) => sum + e.value, 0);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
   const projectTotal    = selectedProjectId ? calculateTotalExpenses(selectedProjectId) : 0;
   const projectBudget   = selectedProject?.estimatedCost ?? 0;
+  // diferença entre o gasto e o orçamento estimado da obra (positivo = estourou o orçamento).
+  // Sem orçamento informado fica null.
   const budgetVariance  = projectBudget > 0 ? projectTotal - projectBudget : null;
 
-  // ── Modal handlers ────────────────────────────────────────────────────────────
+  // Abrir e fechar modais
 
   const openAddModal = () => {
     setExpenseForm({ ...EMPTY_EXPENSE_FORM, obraId: selectedProjectId || (projects[0]?.id ?? '') });
@@ -105,29 +106,33 @@ export function Expenses() {
   };
   const closeModal = () => { setActiveModal(null); setSelectedExpense(null); setExpenseForm(EMPTY_EXPENSE_FORM); };
 
-  // ── Receipt file handler ──────────────────────────────────────────────────────
+  // Upload do comprovante
 
-  const handleReceiptFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // só o Visualizador não lança nem altera gastos (o servidor também confere)
+  const canEditExpenses = activeUser?.role !== 'Visualizador';
+
+  // imagens são reduzidas no navegador antes de ir pro servidor; PDF vai como está (até 5 MB)
+  const handleReceiptFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Comprovante muito grande. Máximo: 2 MB.');
-      return;
+    try {
+      const prepared = await prepareUpload(file);
+      setExpenseForm(prev => ({ ...prev, receipt: prepared.dataUrl, receiptName: prepared.name }));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível anexar o arquivo.');
+    } finally {
+      input.value = ''; // permite escolher o mesmo arquivo de novo
     }
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const base64 = ev.target?.result as string;
-      setExpenseForm(prev => ({ ...prev, receipt: base64, receiptName: file.name }));
-    };
-    reader.readAsDataURL(file);
   }, []);
 
-  // ── Form submit ──────────────────────────────────────────────────────────────
+  // Salvar formulário
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!expenseForm.obraId || !expenseForm.description || !expenseForm.value) return;
     setIsSaving(true);
+    // o valor aceita vírgula (ex: 1500,50) e vira número antes de ir pra API
     const payload = {
       obraId:      expenseForm.obraId,
       description: expenseForm.description.trim(),
@@ -158,7 +163,7 @@ export function Expenses() {
   const resolveTeamMemberName = (id: string) => teamMembers.find(m => m.id === id)?.name ?? '—';
   const resolveProjectName    = (id: string) => projects.find(p => p.id === id)?.name    ?? '—';
 
-  // ── Category totals for summary ────────────────────────────────────────────
+  // Totais por categoria (cards de resumo)
 
   const categoryTotals = EXPENSE_CATEGORIES
     .map(cat => ({
@@ -172,21 +177,25 @@ export function Expenses() {
 
   return (
     <div className="space-y-5">
-      {/* Page header */}
+      {/* Cabeçalho da página */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-black text-[#1a2332]">Gastos de Obras</h1>
           <p className="text-gray-500 text-sm">Lançamento e acompanhamento de despesas por obra</p>
         </div>
+        {canEditExpenses && (
+        <>
         <button
           onClick={openAddModal}
           className="flex items-center gap-2 bg-[#E8821A] text-white font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm"
         >
           <Plus size={16} /> Lançar Gasto
         </button>
+        </>
+        )}
       </div>
 
-      {/* Search & filter */}
+      {/* Busca e filtros */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -207,7 +216,7 @@ export function Expenses() {
         </select>
       </div>
 
-      {/* Summary cards */}
+      {/* Cards de resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-2">
@@ -291,7 +300,7 @@ export function Expenses() {
         )}
       </div>
 
-      {/* Desktop table */}
+      {/* Tabela (desktop) */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hidden md:block">
         {filteredExpenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-300">
@@ -344,12 +353,16 @@ export function Expenses() {
                   <td className="px-4 py-3.5 text-gray-500 text-xs">{resolveTeamMemberName(expense.createdBy)}</td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
+                      {canEditExpenses && (
+                      <>
                       <button onClick={() => openEditModal(expense)} className="text-orange-500 hover:text-orange-700 transition" title="Editar">
                         <Pencil size={15} />
                       </button>
                       <button onClick={() => openDeleteModal(expense)} className="text-red-500 hover:text-red-700 transition" title="Excluir">
                         <Trash2 size={15} />
                       </button>
+                      </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -359,7 +372,7 @@ export function Expenses() {
         )}
       </div>
 
-      {/* Mobile cards */}
+      {/* Cards (celular) */}
       <div className="md:hidden space-y-3">
         {filteredExpenses.map(expense => (
           <div key={expense.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
@@ -382,18 +395,22 @@ export function Expenses() {
                   <FileImage size={12} /> Comprovante
                 </button>
               )}
+              {canEditExpenses && (
+              <>
               <button onClick={() => openEditModal(expense)} className="flex items-center gap-1.5 text-orange-500 text-xs font-semibold ml-auto">
                 <Pencil size={13} /> Editar
               </button>
               <button onClick={() => openDeleteModal(expense)} className="flex items-center gap-1.5 text-red-500 text-xs font-semibold">
                 <Trash2 size={13} /> Excluir
               </button>
+              </>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* ── Add / Edit Modal ───────────────────────────────────────────────────── */}
+      {/* Modal de criar/editar */}
       {(activeModal === 'add' || activeModal === 'edit') && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-lg my-8 p-7 shadow-2xl">
@@ -456,7 +473,7 @@ export function Expenses() {
                 <textarea value={expenseForm.notes} onChange={e => setExpenseForm(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Detalhes adicionais..." className={baseInputClass + ' resize-none'} />
               </div>
 
-              {/* Receipt upload */}
+              {/* Envio do comprovante */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Comprovante</label>
                 <div onClick={() => fileInputRef.current?.click()}
@@ -472,11 +489,11 @@ export function Expenses() {
                     <div className="text-gray-400">
                       <Upload size={20} className="mx-auto mb-1" />
                       <p className="text-xs font-semibold">Clique para anexar</p>
-                      <p className="text-xs mt-0.5">JPG, PNG, PDF · Máx. 2 MB</p>
+                      <p className="text-xs mt-0.5">JPG, PNG ou PDF · fotos são reduzidas sozinhas</p>
                     </div>
                   )}
                 </div>
-                <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={handleReceiptFileChange} />
+                <input ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleReceiptFileChange} />
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -496,7 +513,7 @@ export function Expenses() {
         </div>
       )}
 
-      {/* ── Receipt Preview Modal ──────────────────────────────────────────────── */}
+      {/* Modal de pré-visualização do comprovante */}
       {activeModal === 'receipt' && selectedExpense && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 overflow-y-auto" onClick={closeModal}>
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
@@ -521,7 +538,7 @@ export function Expenses() {
         </div>
       )}
 
-      {/* ── Delete Confirmation Modal ──────────────────────────────────────────── */}
+      {/* Modal de confirmar exclusão */}
       {activeModal === 'delete' && selectedExpense && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">

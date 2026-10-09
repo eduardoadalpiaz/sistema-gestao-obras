@@ -1,7 +1,4 @@
-/**
- * ConstructionDashboard.tsx
- * Overview screen: KPI cards, progress charts, delay report, and notification feed.
- */
+// Visão geral: indicadores, gráficos de progresso, atrasos e notificações.
 import { useState } from 'react';
 import { useConstructionManagement, SystemNotification } from '../context/construction-context';
 import {
@@ -23,8 +20,10 @@ export function ConstructionDashboard() {
 
   const [selectedNotification, setSelectedNotification] = useState<SystemNotification | null>(null);
 
-  // ── KPI Computations ────────────────────────────────────────────────────────
+  // Cálculo dos indicadores
 
+  // indicadores do topo: obras em andamento, obras em andamento que estão atrasadas,
+  // média do progresso e quantidade de etapas atrasadas
   const activeProjectCount   = projects.filter(p => p.status === 'Em andamento').length;
   const delayedProjectCount  = projects.filter(
     p => p.status === 'Em andamento' && getScheduleStatus(p) === 'Atrasada'
@@ -34,14 +33,14 @@ export function ConstructionDashboard() {
     : 0;
   const riskAlertCount       = scheduleStages.filter(s => s.status === 'Atrasada').length;
 
-  // ── Chart Data ──────────────────────────────────────────────────────────────
+  // Dados dos gráficos
 
   const projectProgressChartData = projects.map((p, index) => ({
     name: `${index + 1}. ${p.name.length > 17 ? p.name.substring(0, 15) + '…' : p.name}`,
     progresso: p.progress,
   }));
 
-  // Planned vs Actual trend (last 7 months — representative data)
+  // dados do gráfico de tendência planejado x real
   const monthLabels    = ['Set', 'Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar'];
   const plannedTrend   = [8, 18, 30, 42, 55, 65, 75];
   const actualTrend    = [5, 14, 24, 36, 48, 56, averageProgressPct];
@@ -51,7 +50,7 @@ export function ConstructionDashboard() {
     Realizado: actualTrend[i],
   }));
 
-  // ── Delayed Stages Report ───────────────────────────────────────────────────
+  // Relatório de etapas atrasadas
 
   const delayedStageRows = scheduleStages
     .filter(s => s.status === 'Atrasada')
@@ -62,11 +61,12 @@ export function ConstructionDashboard() {
       const daysOverdue  = Math.max(0, Math.round(
         (today.getTime() - plannedEndDate.getTime()) / (1000 * 60 * 60 * 24)
       ));
+      // risco pelo atraso: mais de 20 dias é Alto, mais de 10 é Médio e o resto é Baixo
       const riskLevel    = daysOverdue > 20 ? 'Alto' : daysOverdue > 10 ? 'Médio' : 'Baixo';
       return { ...stage, projectName: project?.name ?? '—', daysOverdue, riskLevel };
     });
 
-  // ── Helper Renderers ────────────────────────────────────────────────────────
+  // Funções de renderização
 
   const renderNotificationIcon = (type: string, size = 16) => {
     if (type === 'success') return <CheckCircle2 size={size} className="text-green-500 shrink-0" />;
@@ -101,8 +101,9 @@ export function ConstructionDashboard() {
 
   const closeNotificationModal = () => setSelectedNotification(null);
 
-  // ── KPI Card Definitions ────────────────────────────────────────────────────
+  // Definição dos cards de indicadores
 
+  // cards de indicadores do topo (número grande + texto pequeno embaixo)
   const kpiCards = [
     {
       label: 'Obras Ativas',
@@ -140,7 +141,7 @@ export function ConstructionDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
+      {/* Cabeçalho da página */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-[#1a2332]">Dashboard</h1>
@@ -156,7 +157,7 @@ export function ConstructionDashboard() {
         )}
       </div>
 
-      {/* KPI Cards */}
+      {/* Cards de indicadores */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map(kpi => (
           <div key={kpi.label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
@@ -170,9 +171,9 @@ export function ConstructionDashboard() {
         ))}
       </div>
 
-      {/* Charts row */}
+      {/* Linha de gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Progress per Project */}
+        {/* Progresso por obra */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="font-black text-[#1a2332] text-lg mb-5">Progresso por Obra</h2>
           <ResponsiveContainer width="100%" height={220}>
@@ -186,7 +187,7 @@ export function ConstructionDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Planned vs Actual Trend */}
+        {/* Tendência planejado x real */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="font-black text-[#1a2332] text-lg mb-5">Planejado vs Realizado</h2>
           <ResponsiveContainer width="100%" height={220}>
@@ -210,10 +211,10 @@ export function ConstructionDashboard() {
         </div>
       </div>
 
-      {/* Bottom row */}
+      {/* Linha de baixo */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Delay Report */}
+        {/* Relatório de atrasos */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="font-black text-[#1a2332] text-lg mb-4">Relatório de Atrasos</h2>
           {delayedStageRows.length === 0 ? (
@@ -253,7 +254,7 @@ export function ConstructionDashboard() {
           )}
         </div>
 
-        {/* Notification Feed */}
+        {/* Lista de notificações */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-black text-[#1a2332] text-lg">Notificações</h2>
@@ -289,7 +290,7 @@ export function ConstructionDashboard() {
         </div>
       </div>
 
-      {/* ── Notification Detail Modal ──────────────────────────────────────────── */}
+      {/* Modal de detalhe da notificação */}
       {selectedNotification && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">

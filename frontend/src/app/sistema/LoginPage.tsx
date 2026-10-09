@@ -1,8 +1,5 @@
-/**
- * LoginPage.tsx
- * Entry point for system authentication.
- * Supports two flows: password login and first-time account verification.
- */
+// Tela de entrada. Tem dois fluxos: login com senha e verificação
+// da conta no primeiro acesso.
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Mail, Lock, Building2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
@@ -12,14 +9,14 @@ export function LoginPage() {
   const { login, verifyAccountCode, pendingVerificationUser } = useConstructionManagement();
   const navigate = useNavigate();
 
-  // Login form state
+  // estado do formulário de login
   const [emailInput,    setEmailInput]    = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword,  setShowPassword]  = useState(false);
   const [loginError,    setLoginError]    = useState('');
   const [isSubmitting,  setIsSubmitting]  = useState(false);
 
-  // Verification form state
+  // estado do formulário de verificação
   const [verificationCode,  setVerificationCode]  = useState('');
   const [verificationError, setVerificationError] = useState('');
 
@@ -34,18 +31,19 @@ export function LoginPage() {
     } else if (!result.needsVerification) {
       setLoginError(result.error || 'Erro ao entrar.');
     }
-    // When needsVerification=true, the pending user is set in context
-    // and the component automatically shows the verification form.
+    // quando needsVerification é true, o usuário pendente fica no contexto
+    // e a tela troca sozinha para o formulário de verificação
   };
 
+  // primeiro acesso: a pessoa digita o código de 6 dígitos que o administrador recebeu ao cadastrá-la
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setVerificationError('');
-    const verified = await verifyAccountCode(verificationCode.trim());
-    if (verified) {
+    const result = await verifyAccountCode(verificationCode.trim());
+    if (result.success) {
       navigate('/dashboard');
     } else {
-      setVerificationError('Código inválido. Tente novamente.');
+      setVerificationError(result.error || 'Código inválido. Tente novamente.');
     }
   };
 
@@ -54,7 +52,7 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-10">
 
-          {/* Brand header */}
+          {/* Cabeçalho com a marca */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-5 shadow-lg">
               <Building2 size={32} className="text-white" />
@@ -64,7 +62,7 @@ export function LoginPage() {
           </div>
 
           {!pendingVerificationUser ? (
-            /* ── Credentials Form ───────────────────────────────────────── */
+            /* Formulário de login */
             <form onSubmit={handleLoginSubmit} className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
@@ -124,7 +122,7 @@ export function LoginPage() {
               </p>
             </form>
           ) : (
-            /* ── Account Verification Form ──────────────────────────────── */
+            /* Formulário de verificação da conta */
             <form onSubmit={handleVerificationSubmit} className="space-y-5">
               <div className="text-center mb-2">
                 <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">

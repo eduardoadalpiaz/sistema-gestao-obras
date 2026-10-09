@@ -1,19 +1,14 @@
-/**
- * AppShell.tsx
- * Persistent application shell: sidebar navigation, mobile top bar,
- * sync status indicator, and the main content outlet.
- */
+// Estrutura fixa do sistema: menu lateral, barra do topo no celular,
+// indicador de sincronização e a área onde cada página aparece.
 import { Outlet, NavLink, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Building2, Calendar, FileBarChart,
   Users, LogOut, Menu, X, Bell, Loader2, Wifi, WifiOff, Receipt, FolderOpen, History,
 } from 'lucide-react';
-import { Toaster } from 'sonner';
 import { useConstructionManagement } from '../context/construction-context';
 
-// Navigation items — label and path for each section of the system.
-// `restrictedTo`, when present, limits visibility to those staff roles.
+// Itens do menu. Quando tem `restrictedTo`, só esses perfis enxergam o item.
 const NAV_ITEMS = [
   { to: '/dashboard',  label: 'Dashboard',   icon: LayoutDashboard },
   { to: '/obras',      label: 'Obras',        icon: Building2 },
@@ -25,7 +20,7 @@ const NAV_ITEMS = [
   { to: '/historico',  label: 'Histórico',    icon: History, restrictedTo: ['TI', 'Dono'] as const },
 ];
 
-/** Sidebar rendered both on desktop (persistent) and mobile (overlay). */
+// Menu lateral: fixo no desktop e como sobreposição no celular.
 function NavigationSidebar({ onClose }: { onClose?: () => void }) {
   const {
     activeUser, logout, countUnreadNotifications,
@@ -38,7 +33,7 @@ function NavigationSidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="flex flex-col h-full bg-[#1a2332]">
-      {/* Brand */}
+      {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
         <div className="w-10 h-10 bg-[#E8821A] rounded-xl flex items-center justify-center shrink-0">
           <Building2 size={20} className="text-white" />
@@ -54,7 +49,7 @@ function NavigationSidebar({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      {/* Navigation links */}
+      {/* Links do menu */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {NAV_ITEMS
           .filter(item => !item.restrictedTo || (item.restrictedTo as readonly string[]).includes(activeUser?.role ?? ''))
@@ -73,7 +68,7 @@ function NavigationSidebar({ onClose }: { onClose?: () => void }) {
           >
             <Icon size={18} />
             {label}
-            {/* Unread notification badge on Dashboard link */}
+            {/* Bolinha de notificações não lidas no link do Dashboard */}
             {label === 'Dashboard' && unreadCount > 0 && (
               <span className="ml-auto bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -83,7 +78,7 @@ function NavigationSidebar({ onClose }: { onClose?: () => void }) {
         ))}
       </nav>
 
-      {/* Server sync status indicator */}
+      {/* Indicador de sincronização com o servidor */}
       <div className="px-5 py-3 border-t border-white/5">
         <div className="flex items-center gap-2">
           {isSyncConnected ? (
@@ -107,7 +102,7 @@ function NavigationSidebar({ onClose }: { onClose?: () => void }) {
         </div>
       </div>
 
-      {/* Active user info + logout */}
+      {/* Usuário logado e botão de sair */}
       <div className="border-t border-white/10">
         <div className="px-5 py-4">
           <div className="text-white font-bold text-sm">{activeUser?.name}</div>
@@ -131,14 +126,14 @@ export function AppShell() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const unreadCount = countUnreadNotifications();
 
-  // Redirect to login if no active session
+  // sem sessão ativa, volta pro login
   useEffect(() => {
     if (!activeUser) navigate('/login');
   }, [activeUser, navigate]);
 
   if (!activeUser) return null;
 
-  // Show loading screen while initial data is being fetched
+  // enquanto os dados iniciais carregam, mostra a tela de carregando
   if (isInitializing) {
     return (
       <div className="flex h-screen bg-[#1a2332] items-center justify-center">
@@ -156,29 +151,13 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Toast notifications */}
-      <Toaster
-        position="top-right"
-        expand
-        richColors={false}
-        closeButton
-        toastOptions={{
-          style: {
-            background: '#1a2332',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: '12px',
-            fontSize: '13px',
-          },
-        }}
-      />
 
-      {/* Desktop sidebar */}
+      {/* Menu lateral (desktop) */}
       <aside className="hidden md:flex flex-col w-[200px] shrink-0">
         <NavigationSidebar />
       </aside>
 
-      {/* Mobile sidebar overlay */}
+      {/* Menu lateral (celular) */}
       {isMobileSidebarOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div className="w-64 h-full">
@@ -188,9 +167,9 @@ export function AppShell() {
         </div>
       )}
 
-      {/* Main content area */}
+      {/* Área principal */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile top bar */}
+        {/* Barra do topo (celular) */}
         <div className="md:hidden flex items-center justify-between bg-[#1a2332] px-4 py-3">
           <button onClick={() => setIsMobileSidebarOpen(true)} className="text-white">
             <Menu size={22} />
@@ -209,7 +188,7 @@ export function AppShell() {
           </div>
         </div>
 
-        {/* Page content */}
+        {/* Conteúdo da página */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <Outlet />
         </main>

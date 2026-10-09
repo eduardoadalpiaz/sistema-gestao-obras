@@ -1,8 +1,5 @@
-/**
- * TeamManagement.tsx
- * User and staff management screen — only Administrators can
- * create, edit, activate/deactivate, or remove team members.
- */
+// Gerenciamento de usuários. Só o Administrativo pode criar, editar,
+// ativar/desativar ou remover pessoas da equipe.
 import { useState } from 'react';
 import {
   useConstructionManagement, TeamMember, StaffRole, AccountStatus,
@@ -34,6 +31,7 @@ export function TeamManagement() {
     teamMembers, registerTeamMember, updateTeamMember, removeTeamMember, activeUser,
   } = useConstructionManagement();
 
+  // só o Administrativo cadastra, edita, ativa/desativa e remove usuários
   const isAdministrator = activeUser?.role === 'Administrativo';
 
   const [activeModal,        setActiveModal]        = useState<'add' | 'edit' | 'delete' | 'code' | 'viewCode' | null>(null);
@@ -42,7 +40,7 @@ export function TeamManagement() {
   const [newMemberCode,      setNewMemberCode]      = useState('');
   const [isEmailTouched,     setIsEmailTouched]     = useState(false);
 
-  // ── Modal handlers ────────────────────────────────────────────────────────────
+  // Abrir e fechar modais
 
   const openAddModal = () => {
     setMemberForm(EMPTY_MEMBER_FORM);
@@ -77,14 +75,16 @@ export function TeamManagement() {
 
   const closeModal = () => { setActiveModal(null); setSelectedMember(null); };
 
-  // ── Form handlers ─────────────────────────────────────────────────────────────
+  // Campos do formulário
 
   const handleMemberFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    // Normalise email to lowercase in real time
+    // deixa o e-mail em minúsculo enquanto digita
     setMemberForm(prev => ({ ...prev, [name]: name === 'email' ? value.toLowerCase() : value }));
   };
 
+  // cadastrar: o backend cria o usuário (ainda não verificado) e devolve um código de 6 dígitos.
+  // O código aparece num modal pro administrador repassar; a pessoa usa ele no primeiro login.
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
     const verificationCode = await registerTeamMember({
@@ -119,12 +119,14 @@ export function TeamManagement() {
     closeModal();
   };
 
+  // ativar/desativar sem apagar. Usuário inativo não consegue entrar (o backend barra no login)
   const toggleMemberStatus = async (member: TeamMember) => {
     await updateTeamMember(member.id, {
       status: member.status === 'Ativo' ? 'Inativo' : 'Ativo',
     });
   };
 
+  // só um aviso visual (não bloqueia) quando o e-mail não é do domínio da empresa
   const showCorporateEmailWarning =
     isEmailTouched &&
     memberForm.email.length > 0 &&
@@ -134,7 +136,7 @@ export function TeamManagement() {
 
   return (
     <div className="space-y-5">
-      {/* Page header */}
+      {/* Cabeçalho da página */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-[#1a2332]">Gestão de Usuários</h1>
@@ -150,7 +152,7 @@ export function TeamManagement() {
         )}
       </div>
 
-      {/* Non-admin notice */}
+      {/* Aviso para quem não é administrador */}
       {!isAdministrator && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-5 py-4 text-sm text-yellow-700 flex items-center gap-2">
           <Info size={16} className="shrink-0" />
@@ -158,7 +160,7 @@ export function TeamManagement() {
         </div>
       )}
 
-      {/* Desktop table */}
+      {/* Tabela (desktop) */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hidden md:block">
         <table className="w-full text-sm">
           <thead>
@@ -240,7 +242,7 @@ export function TeamManagement() {
         </table>
       </div>
 
-      {/* Mobile cards */}
+      {/* Cards (celular) */}
       <div className="md:hidden space-y-3">
         {teamMembers.map(member => (
           <div key={member.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
@@ -280,7 +282,7 @@ export function TeamManagement() {
         ))}
       </div>
 
-      {/* ── Add / Edit Modal ───────────────────────────────────────────────────── */}
+      {/* Modal de criar/editar */}
       {(activeModal === 'add' || activeModal === 'edit') && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-lg my-8 p-7 shadow-2xl">
@@ -314,7 +316,7 @@ export function TeamManagement() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Senha *</label>
-                <input name="password" type="text" value={memberForm.password} onChange={handleMemberFormChange} required className={baseInputClass} placeholder="Senha de acesso" />
+                <input name="password" type="text" value={memberForm.password} onChange={handleMemberFormChange} required minLength={8} className={baseInputClass} placeholder="Senha de acesso (mínimo 8 caracteres)" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -352,7 +354,7 @@ export function TeamManagement() {
         </div>
       )}
 
-      {/* ── Verification Code Display Modal ──────────────────────────────────── */}
+      {/* Modal com o código de verificação */}
       {(activeModal === 'code' || activeModal === 'viewCode') && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
@@ -386,7 +388,7 @@ export function TeamManagement() {
         </div>
       )}
 
-      {/* ── Delete Confirmation Modal ──────────────────────────────────────────── */}
+      {/* Modal de confirmar exclusão */}
       {activeModal === 'delete' && selectedMember && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">

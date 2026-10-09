@@ -1,12 +1,10 @@
--- ============================================================================
--- Sistema de Gestão de Obras — Schema Relacional (PostgreSQL)
--- Modelo conforme Seção 3.3 do artigo: Usuario, Obra, Etapa, HistoricoAlteracao,
--- Notificacao, DespesaObra, DocumentoObra.
--- ============================================================================
+-- Sistema de Gestão de Obras - schema do PostgreSQL
+-- Segue o modelo da seção 3.3 do artigo: Usuario, Obra, Etapa, HistoricoAlteracao,
+-- Notificacao, DespesaObra e DocumentoObra.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto; -- gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS pgcrypto; -- necessário pro gen_random_uuid()
 
--- ─── Usuario ────────────────────────────────────────────────────────────────
+-- Usuario
 CREATE TABLE usuarios (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name               VARCHAR(150) NOT NULL,
@@ -23,7 +21,7 @@ CREATE TABLE usuarios (
   updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── Obra ───────────────────────────────────────────────────────────────────
+-- Obra
 CREATE TABLE obras (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name            VARCHAR(150) NOT NULL,
@@ -43,6 +41,7 @@ CREATE TABLE obras (
   floors          INTEGER,
   units           INTEGER,
   team_size       INTEGER,
+  team_members    TEXT[] DEFAULT '{}'::text[],
   estimated_cost  NUMERIC(14,2),
   client_budget   NUMERIC(14,2),
   tipo            VARCHAR(20) CHECK (tipo IN ('Residencial','Comercial','Industrial','Misto')),
@@ -51,7 +50,7 @@ CREATE TABLE obras (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── Etapa ──────────────────────────────────────────────────────────────────
+-- Etapa
 CREATE TABLE etapas (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   obra_id         UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE,
@@ -68,7 +67,7 @@ CREATE TABLE etapas (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── DespesaObra ────────────────────────────────────────────────────────────
+-- DespesaObra
 CREATE TABLE despesas_obra (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   obra_id       UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE,
@@ -86,7 +85,7 @@ CREATE TABLE despesas_obra (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── DocumentoObra ──────────────────────────────────────────────────────────
+-- DocumentoObra
 CREATE TABLE documentos_obra (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   obra_id       UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE,
@@ -107,7 +106,7 @@ CREATE TABLE documentos_obra (
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── Notificacao ────────────────────────────────────────────────────────────
+-- Notificacao
 CREATE TABLE notificacoes (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   type        VARCHAR(10) NOT NULL CHECK (type IN ('success','warning','error','info')),
@@ -117,7 +116,7 @@ CREATE TABLE notificacoes (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── HistoricoAlteracao (Audit Log) ────────────────────────────────────────
+-- HistoricoAlteracao (log de auditoria)
 CREATE TABLE historico_alteracoes (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID REFERENCES usuarios(id) ON DELETE SET NULL,
@@ -131,7 +130,7 @@ CREATE TABLE historico_alteracoes (
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── Índices ────────────────────────────────────────────────────────────────
+-- Índices
 CREATE INDEX idx_etapas_obra_id            ON etapas(obra_id);
 CREATE INDEX idx_etapas_status             ON etapas(status);
 CREATE INDEX idx_etapas_planned_end        ON etapas(planned_end);
@@ -141,13 +140,13 @@ CREATE INDEX idx_notificacoes_obra_id      ON notificacoes(obra_id);
 CREATE INDEX idx_notificacoes_read         ON notificacoes(read);
 CREATE INDEX idx_historico_created_at      ON historico_alteracoes(created_at DESC);
 
--- ─── Usuário administrador inicial (senha: admin123 — troque depois do primeiro login) ──
--- Hash gerado com bcrypt (10 rounds). Gere o seu com: node -e "console.log(require('bcryptjs').hashSync('admin123',10))"
+-- Usuário administrador inicial (senha admin123, troque depois do primeiro login)
+-- Hash feito com bcrypt (10 rounds). Pra gerar o seu: node -e "console.log(require('bcryptjs').hashSync('admin123',10))"
 INSERT INTO usuarios (name, email, password_hash, phone, role, status, verified)
 VALUES (
   'Administrador',
   'admin@obras.com',
-  '$2a$10$Wu1ao1RW0v4oGfRAG74I5.xYZiPs1GEgJLOKQ5oWlyD1iXNWuzH6y', -- senha: admin123 — TROQUE após o primeiro login
+  '$2a$10$Wu1ao1RW0v4oGfRAG74I5.xYZiPs1GEgJLOKQ5oWlyD1iXNWuzH6y', -- senha: admin123 (troque no primeiro login)
   '(00) 00000-0000',
   'Administrativo',
   'Ativo',

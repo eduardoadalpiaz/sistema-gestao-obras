@@ -1,48 +1,37 @@
 const { Pool, types } = require("pg");
 
-// Por padrão, o driver "pg" converte colunas DATE em objetos Date do JS
-// (que viram "2026-09-09T00:00:00.000Z" em JSON). O front-end espera a
-// data pura "YYYY-MM-DD" (ele mesmo concatena o horário quando precisa).
-// OID 1082 = tipo DATE do PostgreSQL.
+// Por padrão o pg devolve colunas DATE como objeto Date, que no JSON vira
+// "2026-09-09T00:00:00.000Z". O front espera só "AAAA-MM-DD", então devolvemos o
+// texto cru. (1082 = DATE)
 types.setTypeParser(1082, (value) => value);
 
-// Colunas NUMERIC (valores em dinheiro, área etc.) vêm do "pg" como texto
-// (ex: "40000.00"), não como número, pra não perder casas decimais.
-// Isso faz o front, ao somar, concatenar texto em vez de somar (0 + "40000.00" = "040000.00").
-// OID 1700 = tipo NUMERIC do PostgreSQL. Convertemos pra número aqui.
+// Colunas NUMERIC (dinheiro, área...) chegam como texto, tipo "40000.00". Com
+// isso o front concatenava em vez de somar (0 + "40000.00" dava "040000.00"),
+// então convertemos pra número. (1700 = NUMERIC)
 types.setTypeParser(1700, (value) => (value === null ? null : parseFloat(value)));
 
-// ── Desempenho / Escalabilidade ─────────────────────────────────────────────
-// Tamanho do pool de conexões e timeouts configuráveis por variável de
-// ambiente, para ajustar sem redeploy conforme a carga (nº de usuários
-// simultâneos) cresce.
+// Tamanho do pool e timeouts podem ser ajustados por variável de ambiente.
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false,
-  max: Number(process.env.DB_POOL_MAX || 10),           // conexões simultâneas no pool
-  idleTimeoutMillis: 30_000,                              // libera conexões ociosas
-  connectionTimeoutMillis: 5_000,                         // não trava indefinidamente esperando conexão
+  max: Number(process.env.DB_POOL_MAX || 10),           // máximo de conexões abertas
+  idleTimeoutMillis: 30_000,                              // fecha conexões paradas
+  connectionTimeoutMillis: 5_000,                         // desiste se não conseguir conexão a tempo
 });
 
-// ── Resiliência ──────────────────────────────────────────────────────────────
-// Erros de conexão ociosa (ex: banco reiniciou, rede caiu) não devem derrubar
-// o processo Node inteiro — só registramos e deixamos o pool se recuperar
-// sozinho na próxima query.
+// Se uma conexão parada der erro (banco reiniciou, rede caiu), só registra no log
+// e deixa o pool se recuperar. Não vale derrubar o servidor por isso.
 pool.on("error", (err) => {
   console.error("[db] Erro inesperado em conexão ociosa do pool:", err.message);
 });
 
-// Códigos de erro do PostgreSQL/rede considerados transitórios — vale a pena
-// tentar de novo automaticamente em vez de já devolver erro pro usuário.
+// Erros temporários de conexão: vale tentar de novo antes de devolver erro pro usuário.
 const TRANSIENT_ERROR_CODES = new Set([
   "ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "57P03", // 57P03 = cannot_connect_now
 ]);
 
-/**
- * Executa uma query com retry automático (até 3 tentativas, com pequeno
- * backoff) quando a falha é de conexão/rede — não quando é erro de dados
- * (ex: violação de constraint), que nunca vai "se resolver sozinho".
- */
+// Roda a query e, se der erro de conexão ou rede, tenta de novo até 3 vezes
+// com uma pequena espera. Erro de dado (ex: violou constraint) não adianta repetir.
 async function query(text, params, attempt = 1) {
   try {
     return await pool.query(text, params);
@@ -58,7 +47,7 @@ async function query(text, params, attempt = 1) {
   }
 }
 
-/** Testa se o banco está realmente respondendo (usado pelo /health). */
+// Confere se o banco está respondendo (usado no /health).
 async function checkConnection() {
   await pool.query("SELECT 1");
 }

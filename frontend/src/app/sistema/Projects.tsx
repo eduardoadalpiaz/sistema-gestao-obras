@@ -1,10 +1,6 @@
-/**
- * Projects.tsx
- * Construction project management screen.
- * Handles creating, viewing, editing and deleting projects,
- * with automatic deadline prediction and dual-progress tracking.
- */
-import { useState, useMemo } from 'react';
+// Tela de obras: cadastro, detalhes, edição e exclusão.
+// Também faz a previsão de prazo e mostra a análise por IA.
+import { useState, useMemo, useRef } from 'react';
 import { useConstructionManagement, Project, ObraType, ObraComplexidade } from '../context/construction-context';
 import { useNavigate } from 'react-router';
 import {
@@ -22,7 +18,7 @@ const COMPLEXIDADE_COLORS: Record<ObraComplexidade, string> = {
   Alta:  'bg-red-100 text-red-700',
 };
 
-// ─── Form Types ───────────────────────────────────────────────────────────────
+// Tipos do formulário
 
 type ProjectFormData = Omit<Project, 'id' | 'createdAt' | 'progress'>;
 
@@ -31,18 +27,19 @@ const EMPTY_PROJECT_FORM: ProjectFormData = {
   city: '', state: '', responsibleId: '', status: 'Em andamento',
   startDate: '', endDate: '',
   area: undefined, floors: undefined, units: undefined, teamSize: undefined,
+  teamMembers: [],
   estimatedCost: undefined, clientBudget: undefined,
   tipo: undefined, complexidade: undefined,
 };
 
-// Brazilian postal code mock for offline fallback
+// CEPs de reserva, usados se a consulta online falhar
 const POSTAL_CODE_MOCK: Record<string, Partial<ProjectFormData>> = {
   '95010001': { street: 'Rua Sinimbu', neighborhood: 'Centro', city: 'Caxias do Sul', state: 'RS' },
   '95010100': { street: 'Rua Os Dezoito do Forte', neighborhood: 'São Pelegrino', city: 'Caxias do Sul', state: 'RS' },
   '01310100': { street: 'Av. Paulista', neighborhood: 'Bela Vista', city: 'São Paulo', state: 'SP' },
 };
 
-// ─── Helper Components ────────────────────────────────────────────────────────
+// Componentes auxiliares
 
 const getProjectStatusBadgeClasses = (status: string) =>
   status === 'Em andamento' ? 'bg-green-100 text-green-700' :
@@ -51,10 +48,8 @@ const getProjectStatusBadgeClasses = (status: string) =>
 const formatCurrency = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-/**
- * Dual progress bar showing actual progress (green) vs expected/planned progress (blue).
- * A red expected bar signals the project is behind schedule.
- */
+// Barra dupla: progresso real (verde) e esperado (azul).
+// Se a barra do esperado fica vermelha é porque a obra está atrasada.
 function ProgressComparisonBar({
   actualProgress,
   expectedProgress,
@@ -91,13 +86,14 @@ function ProgressComparisonBar({
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// Componente principal
 
 export function Projects() {
   const {
     projects, teamMembers, createProject, updateProject, removeProject,
     getScheduleStatus, calculateExpectedProgress, calculateProjectProgress,
     calculateTotalExpenses, estimateProjectCompletion, activeUser,
+    generateProjectAnalysis,
   } = useConstructionManagement();
 
   const navigate = useNavigate();
@@ -110,9 +106,28 @@ export function Projects() {
   const [isLookingUpPostalCode, setIsLookingUpPostalCode] = useState(false);
   const [postalCodeError,  setPostalCodeError]  = useState('');
 
+  // Estados da tela de detalhes (nomes da equipe e análise por IA).
+  // Ficam aqui em cima porque hook não pode ficar dentro de if.
+  const [showTeamNames, setShowTeamNames] = useState(false);
+  const [aiAnalysis,    setAiAnalysis]    = useState<string | null>(null);
+  const [aiLoading,     setAiLoading]     = useState(false);
+  const [aiError,       setAiError]       = useState<string | null>(null);
+  // Guarda qual obra está sendo analisada: se o modal fechar ou trocar antes
+  // da resposta chegar, o resultado antigo é descartado.
+  const analysisRequestRef = useRef<string | null>(null);
+
+  const resetAnalysisState = () => {
+    analysisRequestRef.current = null;
+    setShowTeamNames(false);
+    setAiAnalysis(null);
+    setAiLoading(false);
+    setAiError(null);
+  };
+
+  // só Administrativo e Engenheiro criam, editam e excluem obras; os outros perfis só visualizam
   const canEditProjects = activeUser?.role === 'Administrativo' || activeUser?.role === 'Engenheiro';
 
-  // ── Filtered project list ────────────────────────────────────────────────────
+  // Lista filtrada
 
   const filteredProjects = projects.filter(p => {
     const matchesSearch =
@@ -122,8 +137,11 @@ export function Projects() {
     return matchesSearch && matchesStatus;
   });
 
-  // ── Deadline prediction — re-computes when relevant form fields change ───────
+  // Previsão de prazo (recalcula quando os campos do formulário mudam)
 
+  // previsão de prazo do formulário: usa área, data de início, pavimentos, equipe, tipo e
+  // complexidade. A conta fica no contexto (estimateProjectCompletion); o useMemo evita
+  // refazer ela quando muda um campo que não influencia.
   const deadlinePrediction = useMemo(() => {
     if (!projectForm.area || !projectForm.startDate) return null;
     return estimateProjectCompletion({
@@ -136,7 +154,7 @@ export function Projects() {
     });
   }, [projectForm.area, projectForm.startDate, projectForm.floors, projectForm.teamSize, projectForm.tipo, projectForm.complexidade, estimateProjectCompletion]);
 
-  // ── Modal openers ────────────────────────────────────────────────────────────
+  // Abrir e fechar modais
 
   const openAddModal = () => {
     setProjectForm(EMPTY_PROJECT_FORM);
@@ -153,7 +171,8 @@ export function Projects() {
       responsibleId: project.responsibleId, status: project.status,
       startDate: project.startDate, endDate: project.endDate,
       area: project.area, floors: project.floors, units: project.units,
-      teamSize: project.teamSize, estimatedCost: project.estimatedCost,
+      teamSize: project.teamSize, teamMembers: [...(project.teamMembers ?? [])],
+      estimatedCost: project.estimatedCost,
       clientBudget: project.clientBudget,
       tipo: project.tipo, complexidade: project.complexidade,
     });
@@ -161,14 +180,16 @@ export function Projects() {
     setPostalCodeError('');
   };
 
-  const openViewModal   = (project: Project) => { setSelectedProject(project); setActiveModal('view'); };
+  const openViewModal   = (project: Project) => { resetAnalysisState(); setSelectedProject(project); setActiveModal('view'); };
   const openDeleteModal = (project: Project) => { setSelectedProject(project); setActiveModal('delete'); };
-  const closeModal      = () => { setActiveModal(null); setSelectedProject(null); };
+  const closeModal      = () => { resetAnalysisState(); setActiveModal(null); setSelectedProject(null); };
 
   const navigateToSchedule = (projectId: string) => navigate(`/cronograma?obraId=${projectId}`);
 
-  // ── Brazilian postal code lookup (via ViaCEP API) ────────────────────────────
+  // Busca de CEP (ViaCEP)
 
+  // quando o CEP chega a 8 dígitos, busca o endereço no ViaCEP e preenche rua, bairro, cidade e estado.
+  // Se a consulta falhar ou o CEP não existir, tenta os CEPs de reserva (POSTAL_CODE_MOCK).
   const lookupPostalCode = async (rawPostalCode: string) => {
     const digits = rawPostalCode.replace(/\D/g, '');
     if (digits.length !== 8) return;
@@ -198,8 +219,10 @@ export function Projects() {
     setIsLookingUpPostalCode(false);
   };
 
-  // ── Form field handler ───────────────────────────────────────────────────────
+  // Campos do formulário
 
+  // um handler só pra todos os inputs do formulário: campos numéricos viram número (ou undefined
+  // se ficarem vazios) e, quando o CEP completa 8 dígitos, dispara a busca do endereço
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (['area', 'floors', 'units', 'teamSize', 'estimatedCost', 'clientBudget'].includes(name)) {
@@ -221,20 +244,62 @@ export function Projects() {
     }
   };
 
+  // botão "usar prazo estimado": copia a data prevista pelo sistema pro término da obra
   const applyEstimatedDeadline = () => {
     if (deadlinePrediction) {
       setProjectForm(prev => ({ ...prev, endDate: deadlinePrediction.dateISO }));
     }
   };
 
-  // ── Form submit ──────────────────────────────────────────────────────────────
+  // Nomes da equipe (formulário)
+
+  const addTeamMemberName = () =>
+    setProjectForm(prev => ({ ...prev, teamMembers: [...(prev.teamMembers ?? []), ''] }));
+
+  const updateTeamMemberName = (index: number, value: string) =>
+    setProjectForm(prev => ({
+      ...prev,
+      teamMembers: (prev.teamMembers ?? []).map((n, i) => (i === index ? value : n)),
+    }));
+
+  const removeTeamMemberName = (index: number) =>
+    setProjectForm(prev => ({
+      ...prev,
+      teamMembers: (prev.teamMembers ?? []).filter((_, i) => i !== index),
+    }));
+
+  // Análise por IA (detalhes da obra)
+
+  const handleGenerateAnalysis = async (obraId: string) => {
+    analysisRequestRef.current = obraId;
+    setAiLoading(true);
+    setAiError(null);
+    setAiAnalysis(null);
+    try {
+      const text = await generateProjectAnalysis(obraId);
+      if (analysisRequestRef.current !== obraId) return; // o modal foi fechado ou trocado
+      setAiAnalysis(text);
+    } catch (err) {
+      if (analysisRequestRef.current !== obraId) return;
+      setAiError(err instanceof Error ? err.message : 'Não foi possível gerar a análise agora.');
+    } finally {
+      if (analysisRequestRef.current === obraId) setAiLoading(false);
+    }
+  };
+
+  // Salvar formulário
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Nomes da equipe são opcionais: tira linhas em branco e espaços sobrando.
+    const cleanedForm = {
+      ...projectForm,
+      teamMembers: (projectForm.teamMembers ?? []).map(n => n.trim()).filter(Boolean),
+    };
     if (activeModal === 'add') {
-      await createProject({ ...projectForm, progress: 0 });
+      await createProject({ ...cleanedForm, progress: 0 });
     } else if (activeModal === 'edit' && selectedProject) {
-      await updateProject(selectedProject.id, projectForm);
+      await updateProject(selectedProject.id, cleanedForm);
     }
     closeModal();
   };
@@ -247,14 +312,14 @@ export function Projects() {
   const resolveResponsibleName = (id: string) =>
     teamMembers.find(m => m.id === id)?.name ?? '—';
 
-  // ── Input CSS helpers ────────────────────────────────────────────────────────
+  // Classes dos inputs
 
   const baseInputClass       = 'w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#E8821A] transition';
   const highlightedInputClass = 'w-full border border-[#E8821A] bg-orange-50 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#d4731a] transition';
 
   return (
     <div className="space-y-5">
-      {/* ── Page Header ──────────────────────────────────────────────────────── */}
+      {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black text-[#1a2332]">Gestão de Obras</h1>
@@ -270,7 +335,7 @@ export function Projects() {
         )}
       </div>
 
-      {/* ── Search & Filter Bar ───────────────────────────────────────────────── */}
+      {/* Busca e filtro */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -293,7 +358,7 @@ export function Projects() {
         </select>
       </div>
 
-      {/* ── Desktop Table ─────────────────────────────────────────────────────── */}
+      {/* Tabela (desktop) */}
       <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -383,7 +448,7 @@ export function Projects() {
         </table>
       </div>
 
-      {/* ── Mobile Cards ──────────────────────────────────────────────────────── */}
+      {/* Cards (celular) */}
       <div className="md:hidden space-y-3">
         {filteredProjects.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center text-gray-400 border border-gray-100 shadow-sm">
@@ -441,7 +506,7 @@ export function Projects() {
         })}
       </div>
 
-      {/* ── Add / Edit Modal ──────────────────────────────────────────────────── */}
+      {/* Modal de criar/editar */}
       {(activeModal === 'add' || activeModal === 'edit') && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-2xl my-8 p-7 shadow-2xl">
@@ -456,7 +521,7 @@ export function Projects() {
 
             <form onSubmit={handleFormSubmit} className="space-y-5">
 
-              {/* Identification */}
+              {/* Identificação */}
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Identificação</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -490,7 +555,7 @@ export function Projects() {
                 </div>
               </div>
 
-              {/* Address */}
+              {/* Endereço */}
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Endereço</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -544,7 +609,7 @@ export function Projects() {
                 </div>
               </div>
 
-              {/* Technical characteristics — inputs for the prediction engine */}
+              {/* Características técnicas (entradas da previsão de prazo) */}
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
                   Características Técnicas
@@ -578,9 +643,40 @@ export function Projects() {
                       min={1} placeholder="Ex: 12" className={highlightedInputClass} />
                   </div>
                 </div>
+
+                {/* Nomes da equipe (opcional) */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1">
+                      <Users size={13} className="text-[#E8821A]" /> Nomes da equipe
+                      <span className="text-gray-400 font-normal text-xs ml-1">(opcional)</span>
+                    </label>
+                    <button type="button" onClick={addTeamMemberName}
+                      className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
+                      <Plus size={13} /> Adicionar nome
+                    </button>
+                  </div>
+                  {(projectForm.teamMembers ?? []).length === 0 ? (
+                    <p className="text-xs text-gray-400">Nenhum nome adicionado.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {(projectForm.teamMembers ?? []).map((memberName, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input type="text" value={memberName}
+                            onChange={e => updateTeamMemberName(index, e.target.value)}
+                            placeholder={`Nome do integrante ${index + 1}`} className={baseInputClass} />
+                          <button type="button" onClick={() => removeTeamMemberName(index)}
+                            title="Remover nome" className="text-gray-400 hover:text-red-500 transition shrink-0">
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Timeline with deadline prediction */}
+              {/* Datas e previsão de prazo */}
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Prazo</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -594,7 +690,7 @@ export function Projects() {
                   </div>
                 </div>
 
-                {/* Deadline prediction card */}
+                {/* Card da previsão de prazo */}
                 {deadlinePrediction && (
                   <div className="mt-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="flex items-start gap-3 flex-1">
@@ -644,7 +740,7 @@ export function Projects() {
                 )}
               </div>
 
-              {/* Budget */}
+              {/* Orçamento */}
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Financeiro</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -680,7 +776,7 @@ export function Projects() {
         </div>
       )}
 
-      {/* ── View Modal ────────────────────────────────────────────────────────── */}
+      {/* Modal de detalhes */}
       {activeModal === 'view' && selectedProject && (() => {
         const actualProgress   = calculateProjectProgress(selectedProject.id);
         const expectedProgress = calculateExpectedProgress(selectedProject);
@@ -703,7 +799,7 @@ export function Projects() {
                 <button onClick={closeModal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
 
-              {/* Progress overview on dark background */}
+              {/* Resumo do progresso (fundo escuro) */}
               <div className="bg-[#1a2332] rounded-2xl p-4 space-y-3 mb-4">
                 <p className="text-white font-bold text-sm">{selectedProject.name}</p>
                 <div className="space-y-2">
@@ -740,7 +836,7 @@ export function Projects() {
                 </div>
               </div>
 
-              {/* Info grid */}
+              {/* Grade de informações */}
               <div className="grid grid-cols-2 gap-3 mb-3">
                 {[
                   { label: 'Status',           value: selectedProject.status },
@@ -757,7 +853,7 @@ export function Projects() {
                 ))}
               </div>
 
-              {/* Technical specs */}
+              {/* Características técnicas */}
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <div className="text-gray-400 text-xs mb-1 flex items-center gap-1"><Ruler size={11} /> Área</div>
@@ -769,13 +865,38 @@ export function Projects() {
                   <div className="text-gray-400 text-xs mb-1 flex items-center gap-1"><Layers size={11} /> Pavimentos</div>
                   <div className="font-semibold text-[#1a2332] text-sm">{selectedProject.floors ?? '—'}</div>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <div className="text-gray-400 text-xs mb-1 flex items-center gap-1"><Users size={11} /> Equipe</div>
+                <div
+                  role="button" tabIndex={0}
+                  onClick={() => setShowTeamNames(v => !v)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowTeamNames(v => !v); } }}
+                  title="Clique para ver os nomes da equipe"
+                  className={`rounded-xl p-3 cursor-pointer transition border ${showTeamNames ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-transparent hover:bg-gray-100'}`}>
+                  <div className="text-gray-400 text-xs mb-1 flex items-center gap-1">
+                    <Users size={11} /> Equipe
+                    <ChevronRight size={11} className={`ml-auto transition-transform ${showTeamNames ? 'rotate-90' : ''}`} />
+                  </div>
                   <div className="font-semibold text-[#1a2332] text-sm">
                     {selectedProject.teamSize ? `${selectedProject.teamSize} pess.` : '—'}
                   </div>
                 </div>
               </div>
+
+              {showTeamNames && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3">
+                  <div className="text-blue-400 text-xs mb-2 flex items-center gap-1">
+                    <Users size={12} /> Integrantes da equipe
+                  </div>
+                  {(selectedProject.teamMembers ?? []).length > 0 ? (
+                    <ul className="space-y-1">
+                      {(selectedProject.teamMembers ?? []).map((memberName, index) => (
+                        <li key={index} className="text-sm text-[#1a2332] font-medium">{memberName}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500">Nenhum nome cadastrado. Use "Editar" para adicionar.</p>
+                  )}
+                </div>
+              )}
 
               {/* Tipo e Complexidade */}
               {(selectedProject.tipo || selectedProject.complexidade) && (
@@ -797,7 +918,7 @@ export function Projects() {
                 </div>
               )}
 
-              {/* Address */}
+              {/* Endereço */}
               <div className="bg-gray-50 rounded-xl p-3 mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-gray-400 text-xs flex items-center gap-1"><MapPin size={12} /> Endereço</div>
@@ -813,8 +934,7 @@ export function Projects() {
                 <div className="font-semibold text-[#1a2332] text-sm mb-3">
                   {selectedProject.street}, {selectedProject.neighborhood} – {selectedProject.city}/{selectedProject.state} · CEP {selectedProject.cep}
                 </div>
-                {/* Mapa embutido: mostra a localização sem sair do sistema.
-                    Usa o embed público do Google Maps (sem chave de API). */}
+                {/* Mapa embutido (embed público do Google Maps, não precisa de chave de API) */}
                 {(selectedProject.street || selectedProject.city) && (
                   <div className="rounded-lg overflow-hidden border border-gray-200">
                     <iframe
@@ -830,7 +950,7 @@ export function Projects() {
                 )}
               </div>
 
-              {/* Budget vs Actual */}
+              {/* Orçamento x gasto real */}
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="bg-orange-50 border border-orange-100 rounded-xl p-3">
                   <div className="text-orange-400 text-xs mb-1 flex items-center gap-1"><DollarSign size={12} /> Orçamento Estimado</div>
@@ -846,7 +966,7 @@ export function Projects() {
                 </div>
               </div>
 
-              {/* AI deadline prediction */}
+              {/* Previsão de prazo pelo sistema */}
               {prediction && (
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-3">
                   <div className="text-blue-400 text-xs mb-1 flex items-center gap-1">
@@ -861,6 +981,31 @@ export function Projects() {
                 </div>
               )}
 
+              {/* Análise Inteligente (Gemini, via backend) */}
+              <div className="border border-purple-100 bg-purple-50 rounded-xl p-3 mb-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-purple-500 text-xs font-semibold flex items-center gap-1">
+                    <Sparkles size={12} /> Análise Inteligente
+                  </div>
+                  <button type="button" onClick={() => handleGenerateAnalysis(selectedProject.id)} disabled={aiLoading}
+                    className="flex items-center gap-1.5 text-xs font-bold bg-purple-600 text-white px-3 py-1.5 rounded-lg hover:bg-purple-700 transition disabled:opacity-60 disabled:cursor-not-allowed">
+                    {aiLoading ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    {aiLoading ? 'Analisando...' : aiAnalysis ? 'Gerar novamente' : 'Gerar Análise'}
+                  </button>
+                </div>
+                {aiAnalysis && (
+                  <p className="text-sm text-[#1a2332] leading-relaxed mt-3 whitespace-pre-line">{aiAnalysis}</p>
+                )}
+                {aiError && (
+                  <p className="text-sm text-red-600 mt-3">{aiError}</p>
+                )}
+                {!aiAnalysis && !aiError && !aiLoading && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Gera um resumo curto da situação de prazo e orçamento desta obra com inteligência artificial.
+                  </p>
+                )}
+              </div>
+
               <button onClick={closeModal}
                 className="w-full mt-2 bg-[#1a2332] text-white font-bold py-2.5 rounded-xl hover:bg-[#243347] transition text-sm">
                 Fechar
@@ -870,7 +1015,7 @@ export function Projects() {
         );
       })()}
 
-      {/* ── Delete Confirmation Modal ─────────────────────────────────────────── */}
+      {/* Modal de confirmar exclusão */}
       {activeModal === 'delete' && selectedProject && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">

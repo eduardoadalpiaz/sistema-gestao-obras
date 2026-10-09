@@ -1,10 +1,15 @@
+// Contexto global do sistema: guarda no estado todos os dados (obras, etapas, gastos, documentos,
+// usuários, notificações e histórico), conversa com a API e oferece as funções que as telas usam
+// (criar, editar, remover e os cálculos de progresso, prazo e status).
+// As telas só precisam chamar o hook useConstructionManagement().
 import {
   createContext, useContext, useState, useEffect,
   useCallback, useRef, ReactNode,
 } from 'react';
 import { toast } from 'sonner';
+import { api, ApiError, getToken, setToken, clearSession, readApiMessage, SESSION_EXPIRED_EVENT } from '../utils/api';
 
-// ─── Domain Types ─────────────────────────────────────────────────────────────
+// Tipos
 
 export type StaffRole            = 'Administrativo' | 'Engenheiro' | 'Mestre de Obras' | 'Visualizador' | 'TI' | 'Dono';
 export type AccountStatus        = 'Ativo' | 'Inativo';
@@ -19,7 +24,7 @@ export type ObraComplexidade     = 'Baixa' | 'Média' | 'Alta';
 export type AuditAction          = 'Criou' | 'Editou' | 'Removeu';
 export type AuditModule          = 'Obras' | 'Etapas' | 'Despesas' | 'Documentos' | 'Usuários';
 
-// ─── Domain Entities ──────────────────────────────────────────────────────────
+// Entidades
 
 export interface AuditEntry {
   id: string;
@@ -66,6 +71,7 @@ export interface Project {
   floors?: number;
   units?: number;
   teamSize?: number;
+  teamMembers?: string[]; // nomes dos integrantes (opcional)
   estimatedCost?: number;
   clientBudget?: number;
   tipo?: ObraType;
@@ -125,7 +131,7 @@ export interface ProjectDocument {
   createdAt: string;
 }
 
-// ─── Auth Result ──────────────────────────────────────────────────────────────
+// Resultado do login
 
 interface AuthenticationResult {
   success: boolean;
@@ -133,7 +139,7 @@ interface AuthenticationResult {
   needsVerification?: boolean;
 }
 
-// ─── Deadline Estimation ──────────────────────────────────────────────────────
+// Estimativa de prazo
 
 interface DeadlinePrediction {
   days: number;
@@ -143,7 +149,7 @@ interface DeadlinePrediction {
   isFallback: boolean;
 }
 
-// ─── Context Contract ─────────────────────────────────────────────────────────
+// O que o contexto oferece
 
 interface ConstructionManagementContextType {
   isInitializing: boolean;
@@ -152,7 +158,7 @@ interface ConstructionManagementContextType {
   activeUser: TeamMember | null;
   pendingVerificationUser: TeamMember | null;
   login: (email: string, password: string) => Promise<AuthenticationResult>;
-  verifyAccountCode: (code: string) => Promise<boolean>;
+  verifyAccountCode: (code: string) => Promise<AuthenticationResult>;
   logout: () => void;
 
   teamMembers: TeamMember[];
@@ -164,6 +170,7 @@ interface ConstructionManagementContextType {
   createProject: (project: Omit<Project, 'id' | 'createdAt'>) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<void>;
   removeProject: (id: string) => Promise<void>;
+  generateProjectAnalysis: (obraId: string) => Promise<string>;
 
   scheduleStages: ScheduleStage[];
   addScheduleStage: (stage: Omit<ScheduleStage, 'id'>) => Promise<void>;
@@ -202,26 +209,7 @@ interface ConstructionManagementContextType {
   }) => DeadlinePrediction | null;
 }
 
-// ─── API Client ───────────────────────────────────────────────────────────────
-
-const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3001';
-
-async function api<T = unknown>(
-  path: string,
-  opts?: RequestInit,
-): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...opts,
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-  return res.json() as Promise<T>;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Funções auxiliares
 
 const SEVERITY_ICONS: Record<NotificationSeverity, string> = {
   success: '✅', warning: '⚠️', error: '❌', info: 'ℹ️',
@@ -251,11 +239,16 @@ function formatBRL(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// Constantes da previsão de prazo (veja estimateProjectCompletion):
+// - COMPLEXITY_FACTOR: multiplica os dias conforme a complexidade da obra
+// - INDUSTRY_AVERAGE_DAYS_PER_SQM: valor de referência (dias por m²) usado quando ainda
+//   não existe nenhuma obra concluída pra servir de base
+// - FLOOR_COMPLEXITY_FACTOR: cada pavimento a mais deixa a obra 8% mais demorada
 const COMPLEXITY_FACTOR: Record<string, number> = { Baixa: 0.85, Média: 1.0, Alta: 1.25 };
 const INDUSTRY_AVERAGE_DAYS_PER_SQM = 0.52;
 const FLOOR_COMPLEXITY_FACTOR        = 0.08;
 
-// ─── Context Default ──────────────────────────────────────────────────────────
+// Valores padrão do contexto
 
 const ConstructionManagementContext = createContext<ConstructionManagementContextType>({
   isInitializing: true,
@@ -263,7 +256,7 @@ const ConstructionManagementContext = createContext<ConstructionManagementContex
   activeUser: null,
   pendingVerificationUser: null,
   login: async () => ({ success: false }),
-  verifyAccountCode: async () => false,
+  verifyAccountCode: async () => ({ success: false }),
   logout: () => {},
   teamMembers: [],
   registerTeamMember: async () => '',
@@ -273,6 +266,7 @@ const ConstructionManagementContext = createContext<ConstructionManagementContex
   createProject: async () => {},
   updateProject: async () => {},
   removeProject: async () => {},
+  generateProjectAnalysis: async () => '',
   scheduleStages: [],
   addScheduleStage: async () => {},
   updateScheduleStage: async () => {},
@@ -298,21 +292,24 @@ const ConstructionManagementContext = createContext<ConstructionManagementContex
   estimateProjectCompletion: () => null,
 });
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// Provider
 
 export function ConstructionManagementProvider({ children }: { children: ReactNode }) {
 
   const [isInitializing,    setIsInitializing]    = useState(true);
   const [isSyncConnected,   setIsSyncConnected]   = useState(false);
 
+  // o usuário logado fica salvo no localStorage, então continua logado depois de recarregar a página
+  // (só vale se o token de login também estiver guardado)
   const [activeUser, setActiveUser] = useState<TeamMember | null>(() => {
     try {
       const stored = localStorage.getItem('dp_current_user');
-      return stored ? JSON.parse(stored) : null;
+      return stored && getToken() ? JSON.parse(stored) : null;
     } catch { return null; }
   });
 
   const [pendingVerificationUser, setPendingVerificationUser] = useState<TeamMember | null>(null);
+  const [pendingVerifyToken, setPendingVerifyToken] = useState<string | null>(null);
   const [teamMembers,    setTeamMembers]    = useState<TeamMember[]>([]);
   const [projects,       setProjects]       = useState<Project[]>([]);
   const [scheduleStages, setScheduleStages] = useState<ScheduleStage[]>([]);
@@ -321,6 +318,8 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   const [systemNotifications, setSystemNotifications] = useState<SystemNotification[]>([]);
   const [auditLog,       setAuditLog]       = useState<AuditEntry[]>([]);
 
+  // os refs guardam sempre o valor mais recente (usuário, obras, etapas). Servem pras funções
+  // que rodam depois de um await lerem o valor atual, e não o de quando foram criadas.
   const activeUserRef    = useRef<TeamMember | null>(activeUser);
   const projectsRef      = useRef<Project[]>([]);
   const scheduleStagesRef = useRef<ScheduleStage[]>([]);
@@ -330,15 +329,44 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   useEffect(() => { scheduleStagesRef.current = scheduleStages; }, [scheduleStages]);
 
   useEffect(() => {
-    if (activeUser) localStorage.setItem('dp_current_user', JSON.stringify(activeUser));
-    else            localStorage.removeItem('dp_current_user');
+    if (activeUser) {
+      const { verificationCode: _codigo, ...semCodigo } = activeUser;
+      localStorage.setItem('dp_current_user', JSON.stringify(semCodigo));
+    } else {
+      localStorage.removeItem('dp_current_user');
+    }
   }, [activeUser]);
 
-  // ── Bootstrap from API ────────────────────────────────────────────────────────
+  // Carga inicial vinda da API
 
+  // se o servidor disser que a sessão venceu, volta pro login
   useEffect(() => {
+    const onExpired = () => {
+      setActiveUser(null);
+      setPendingVerificationUser(null);
+      setPendingVerifyToken(null);
+      toast.warning('Sua sessão expirou. Entre novamente.');
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, []);
+
+  // Os dados só são buscados depois do login (o /data exige token). Ao sair, limpa tudo
+  // pra não sobrar nada do usuário anterior na tela.
+  useEffect(() => {
+    if (!activeUser) {
+      setTeamMembers([]); setProjects([]); setScheduleStages([]); setExpenses([]);
+      setDocuments([]); setSystemNotifications([]); setAuditLog([]);
+      setIsSyncConnected(false);
+      setIsInitializing(false);
+      return;
+    }
+
+    let cancelled = false; // se o usuário sair no meio da carga, a resposta é descartada
+    setIsInitializing(true);
     const load = async () => {
       try {
+        // um único GET /data traz tudo: usuários, obras, etapas, gastos, documentos, notificações e histórico
         const data = await api<{
           users: TeamMember[];
           obras: Project[];
@@ -348,6 +376,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
           documentos: ProjectDocument[];
           audit: AuditEntry[];
         }>('/data');
+        if (cancelled) return;
 
         setTeamMembers(data.users ?? []);
         setProjects(data.obras ?? []);
@@ -357,6 +386,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
         setDocuments(data.documentos ?? []);
         setAuditLog(data.audit ?? []);
 
+        // atualiza o usuário logado com o que veio do banco (perfil ou status podem ter mudado)
         const session = activeUserRef.current;
         if (session) {
           const fresh = (data.users ?? []).find(u => u.id === session.id);
@@ -365,16 +395,19 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
 
         setIsSyncConnected(true);
       } catch (err) {
-        console.error('Failed to load data from API:', err);
+        if (cancelled) return;
+        // 401 é sessão vencida: o aviso e a volta pro login já são tratados em utils/api.ts
+        if (!(err instanceof ApiError && err.status === 401)) console.error('Failed to load data from API:', err);
         setIsSyncConnected(false);
       } finally {
-        setIsInitializing(false);
+        if (!cancelled) setIsInitializing(false);
       }
     };
     load();
-  }, []);
+    return () => { cancelled = true; };
+  }, [activeUser?.id]);
 
-  // ── Internal: push notification via API ───────────────────────────────────────
+  // Cria notificação (uso interno)
 
   const pushNotification = useCallback(async (
     type: NotificationSeverity,
@@ -392,7 +425,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
       setSystemNotifications(prev => [notif, ...prev]);
       showNotificationToast(notif);
     } catch {
-      // If API fails, still show toast
+      // mesmo se a API falhar, o aviso aparece na tela
       const fallback: SystemNotification = {
         id: String(Date.now()),
         type,
@@ -405,8 +438,10 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   }, []);
 
-  // ── Internal: push audit entry via API ───────────────────────────────────────
+  // Registra no histórico (uso interno)
 
+  // grava no histórico quem fez o quê (criou, editou ou removeu), em qual módulo e,
+  // nas edições, o valor antigo e o novo
   const pushAuditEntry = useCallback(async (entry: Omit<AuditEntry, 'id' | 'createdAt'>) => {
     try {
       const res = await api<{ entry: AuditEntry }>('/audit', {
@@ -419,8 +454,10 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   }, []);
 
-  // ── Internal: sync project progress ──────────────────────────────────────────
+  // Recalcula o progresso da obra (uso interno)
 
+  // o progresso da obra é a média do progresso das etapas dela. Sempre que uma etapa
+  // muda, recalcula e salva na obra
   const syncProjectProgress = useCallback(async (obraId: string, stages: ScheduleStage[]) => {
     const projectStages = stages.filter(s => s.obraId === obraId);
     if (projectStages.length === 0) return;
@@ -438,54 +475,67 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   }, []);
 
-  // ── Auth ──────────────────────────────────────────────────────────────────────
+  // Login
 
+  // O login só trata o que o backend respondeu: sucesso (guarda o token e o usuário), conta que
+  // precisa ser verificada (guarda o usuário pendente pra tela do código) ou erro (mostra a mensagem).
   const login = async (email: string, password: string): Promise<AuthenticationResult> => {
     try {
-      const res = await api<{ success?: boolean; error?: string; needsVerification?: boolean; user?: TeamMember }>(
-        '/auth/login',
-        { method: 'POST', body: JSON.stringify({ email, password }) },
-      );
-      if (res.error) return { success: false, error: res.error };
-      if (res.needsVerification && res.user) {
+      const res = await api<{
+        success?: boolean; error?: string; needsVerification?: boolean;
+        user?: TeamMember; token?: string; verifyToken?: string;
+      }>('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+
+      if (res.needsVerification && res.user && res.verifyToken) {
         setPendingVerificationUser(res.user);
+        setPendingVerifyToken(res.verifyToken);
         return { success: false, needsVerification: true };
       }
-      if (res.success && res.user) {
+      if (res.success && res.user && res.token) {
+        setToken(res.token);
+        setIsInitializing(true); // evita mostrar telas vazias enquanto os dados carregam
         setActiveUser(res.user);
         return { success: true };
       }
-      return { success: false, error: 'Erro desconhecido.' };
+      return { success: false, error: res.error || 'Erro desconhecido.' };
     } catch (err) {
-      return { success: false, error: `Falha de conexão: ${err}` };
+      return { success: false, error: readApiMessage(err, 'Não foi possível conectar ao servidor. Tente de novo.') };
     }
   };
 
-  const verifyAccountCode = async (code: string): Promise<boolean> => {
-    if (!pendingVerificationUser) return false;
+  // primeiro acesso: manda o código junto com o token curto que o login entregou
+  const verifyAccountCode = async (code: string): Promise<AuthenticationResult> => {
+    if (!pendingVerificationUser || !pendingVerifyToken) {
+      return { success: false, error: 'Faça login de novo.' };
+    }
     try {
-      const res = await api<{ success?: boolean; user?: TeamMember; error?: string }>(
+      const res = await api<{ success?: boolean; user?: TeamMember; token?: string }>(
         '/auth/verify',
-        { method: 'POST', body: JSON.stringify({ userId: pendingVerificationUser.id, code }) },
+        { method: 'POST', body: JSON.stringify({ verifyToken: pendingVerifyToken, code }) },
       );
-      if (res.success && res.user) {
+      if (res.success && res.user && res.token) {
+        setToken(res.token);
+        setIsInitializing(true);
         setActiveUser(res.user);
-        setTeamMembers(prev => prev.map(u => u.id === res.user!.id ? res.user! : u));
         setPendingVerificationUser(null);
-        return true;
+        setPendingVerifyToken(null);
+        return { success: true };
       }
-      return false;
-    } catch {
-      return false;
+      return { success: false, error: 'Código inválido. Tente novamente.' };
+    } catch (err) {
+      return { success: false, error: readApiMessage(err, 'Código inválido. Tente novamente.') };
     }
   };
 
+  // sair apaga o token e o usuário guardados no navegador
   const logout = () => {
+    clearSession();
     setActiveUser(null);
     setPendingVerificationUser(null);
+    setPendingVerifyToken(null);
   };
 
-  // ── Team Members ──────────────────────────────────────────────────────────────
+  // Equipe (usuários)
 
   const registerTeamMember = async (memberData: Omit<TeamMember, 'id' | 'createdAt'>): Promise<string> => {
     const res = await api<{ user: TeamMember; verificationCode: string }>('/users', {
@@ -514,6 +564,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     if (activeUser?.id === id) setActiveUser(res.user);
 
     if (existing) {
+      // só entram no histórico os campos que mudaram de verdade (senha e código ficam de fora)
       const changedFields = (Object.keys(updates) as Array<keyof TeamMember>).filter(
         k => updates[k] !== existing[k] && k !== 'password' && k !== 'verificationCode'
       );
@@ -547,8 +598,11 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   };
 
-  // ── Projects ──────────────────────────────────────────────────────────────────
+  // Obras
 
+  // Padrão de criar/editar/remover (vale pra obras, etapas, gastos e documentos):
+  // 1) chama a API, 2) atualiza o estado da tela, 3) gera uma notificação e
+  // 4) grava no histórico quem fez a alteração.
   const createProject = async (projectData: Omit<Project, 'id' | 'createdAt'>): Promise<void> => {
     const res = await api<{ obra: Project }>('/obras', {
       method: 'POST',
@@ -575,8 +629,15 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
 
     if (existing && activeUserRef.current) {
       const skipFields = new Set(['progress', 'createdAt', 'id']);
+      // Arrays (teamMembers) são comparados pelo conteúdo. Sem isso, salvar com os
+      // mesmos nomes geraria um registro falso de edição no histórico.
+      const sameValue = (a: unknown, b: unknown) =>
+        Array.isArray(a) || Array.isArray(b)
+          ? JSON.stringify(a ?? []) === JSON.stringify(b ?? [])
+          : a === b;
+      const display = (v: unknown) => Array.isArray(v) ? v.join(', ') : String(v ?? '');
       const changedFields = (Object.keys(updates) as Array<keyof Project>).filter(
-        k => !skipFields.has(k) && updates[k] !== existing[k]
+        k => !skipFields.has(k) && !sameValue(updates[k], existing[k])
       );
       for (const field of changedFields) {
         pushAuditEntry({
@@ -586,8 +647,8 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
           module:     'Obras',
           targetName: existing.name,
           field:      String(field),
-          oldValue:   String(existing[field] ?? ''),
-          newValue:   String(updates[field] ?? ''),
+          oldValue:   display(existing[field]),
+          newValue:   display(updates[field]),
         });
       }
     }
@@ -612,7 +673,28 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   };
 
-  // ── Schedule Stages ───────────────────────────────────────────────────────────
+  // Pede ao backend (que chama o Gemini) um resumo da obra.
+  // Se der erro, a rota devolve { message } (503 sem chave, 502 se a IA falhar...).
+  const generateProjectAnalysis = async (obraId: string): Promise<string> => {
+    try {
+      const res = await api<{ analysis: string }>('/ai/analyze-obra', {
+        method: 'POST',
+        body: JSON.stringify({ obraId }),
+      });
+      return res.analysis;
+    } catch (err) {
+      let message = 'Não foi possível gerar a análise agora. Tente novamente em instantes.';
+      if (err instanceof Error) {
+        try {
+          const parsed = JSON.parse(err.message);
+          if (parsed && typeof parsed.message === 'string') message = parsed.message;
+        } catch { /* não veio JSON (ex: sem internet), fica a mensagem padrão */ }
+      }
+      throw new Error(message);
+    }
+  };
+
+  // Etapas do cronograma
 
   const addScheduleStage = async (stageData: Omit<ScheduleStage, 'id'>): Promise<void> => {
     const res = await api<{ stage: ScheduleStage }>('/stages', {
@@ -646,6 +728,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     setScheduleStages(updatedStages);
     syncProjectProgress(existing.obraId, updatedStages);
 
+    // só avisa quando o status da etapa mudou: concluída (sucesso), atrasada (alerta) ou iniciada (info)
     if (updates.status && updates.status !== existing.status) {
       const project = projectsRef.current.find(p => p.id === existing.obraId);
       const pName   = project?.name ?? 'Obra';
@@ -696,7 +779,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   };
 
-  // ── Expenses ──────────────────────────────────────────────────────────────────
+  // Gastos
 
   const recordExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>): Promise<void> => {
     const res = await api<{ gasto: Expense }>('/gastos', {
@@ -760,7 +843,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   };
 
-  // ── Documents ─────────────────────────────────────────────────────────────────
+  // Documentos
 
   const attachDocument = async (docData: Omit<ProjectDocument, 'id' | 'createdAt'>): Promise<void> => {
     const res = await api<{ documento: ProjectDocument }>('/documentos', {
@@ -814,7 +897,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     }
   };
 
-  // ── Notifications ─────────────────────────────────────────────────────────────
+  // Notificações
 
   const markNotificationRead = async (id: string): Promise<void> => {
     try {
@@ -833,14 +916,17 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     } catch { /* optimistic only */ }
   };
 
-  // ── Computed Helpers ──────────────────────────────────────────────────────────
+  // Cálculos derivados
 
+  // progresso da obra = média do progresso das etapas. Sem etapas, usa o progresso salvo na obra.
   const calculateProjectProgress = (projectId: string): number => {
     const projectStages = scheduleStages.filter(s => s.obraId === projectId);
     if (projectStages.length === 0) return projects.find(p => p.id === projectId)?.progress ?? 0;
     return Math.round(projectStages.reduce((sum, s) => sum + s.progress, 0) / projectStages.length);
   };
 
+  // progresso esperado: quanto do prazo (do início ao término previsto) já passou, de 0 a 100.
+  // Antes do início é 0 e depois do término é 100.
   const calculateExpectedProgress = (project: Project): number => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const start = new Date(project.startDate + 'T00:00:00');
@@ -850,15 +936,20 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     return Math.round(((today.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100);
   };
 
+  // a obra está "No Prazo" se o progresso real não ficou mais de 12 pontos abaixo do esperado.
+  // Essa tolerância evita marcar como atrasada por uma diferença pequena.
   const getScheduleStatus = (project: Project): 'No Prazo' | 'Atrasada' => {
     const expected = calculateExpectedProgress(project);
     const actual   = calculateProjectProgress(project.id);
     return actual >= expected - 12 ? 'No Prazo' : 'Atrasada';
   };
 
+  // soma dos gastos lançados na obra
   const calculateTotalExpenses = (projectId: string): number =>
     expenses.filter(e => e.obraId === projectId).reduce((sum, e) => sum + e.value, 0);
 
+  // situação do documento pela data de validade: "Vencido" se já passou, "Vencendo" se faltam
+  // 30 dias ou menos e "Válido" nos outros casos. Sem data de validade, vale o status digitado.
   const calculateDocumentStatus = useCallback((doc: ProjectDocument): DocumentValidityStatus => {
     if (!doc.expiryDate) return doc.status;
     const today  = new Date(); today.setHours(0, 0, 0, 0);
@@ -869,6 +960,8 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     return 'Válido';
   }, []);
 
+  // Previsão de prazo: média de dias por m² das obras concluídas, ajustada pela equipe,
+  // pavimentos e complexidade da obra nova (mínimo de 30 dias). Soma o resultado à data de início.
   const estimateProjectCompletion = useCallback((params: {
     area: number;
     startDate: string;
@@ -932,7 +1025,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   const countUnreadNotifications = (): number =>
     systemNotifications.filter(n => !n.read).length;
 
-  // ── Provider Value ────────────────────────────────────────────────────────────
+  // Valor do provider
 
   return (
     <ConstructionManagementContext.Provider value={{
@@ -951,6 +1044,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
       createProject,
       updateProject,
       removeProject,
+      generateProjectAnalysis,
       scheduleStages,
       addScheduleStage,
       updateScheduleStage,
@@ -980,7 +1074,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   );
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// Hook de uso
 
 export function useConstructionManagement() {
   return useContext(ConstructionManagementContext);

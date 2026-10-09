@@ -40,12 +40,12 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
         className="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
         onClick={() => hasDetail && setExpanded(e => !e)}
       >
-        {/* Timestamp */}
+        {/* Data e hora */}
         <div className="text-[10px] text-gray-600 font-mono shrink-0 w-32 hidden sm:block">
           {formatDate(entry.createdAt)}
         </div>
 
-        {/* Module badge */}
+        {/* Etiqueta do módulo */}
         <span
           className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0"
           style={{ background: mc.bg, color: mc.text, border: `1px solid ${mc.border}` }}
@@ -53,7 +53,7 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
           {entry.module}
         </span>
 
-        {/* Action badge */}
+        {/* Etiqueta da ação */}
         <span
           className="text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0"
           style={{ background: ac.bg, color: ac.text }}
@@ -61,7 +61,7 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
           {entry.action}
         </span>
 
-        {/* Target */}
+        {/* Alvo */}
         <div className="flex-1 min-w-0">
           <span className="text-sm text-gray-300 truncate block">{entry.targetName}</span>
           {entry.field && !expanded && (
@@ -69,16 +69,16 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
           )}
         </div>
 
-        {/* User */}
+        {/* Usuário */}
         <div className="text-[11px] text-gray-600 shrink-0 hidden md:block">{entry.userName}</div>
 
-        {/* Expand indicator */}
+        {/* Seta de expandir */}
         {hasDetail && (
           <span className="text-gray-700 text-[10px] shrink-0" style={{ transform: expanded ? 'rotate(180deg)' : 'none', display: 'inline-block', transition: 'transform .15s' }}>▼</span>
         )}
       </div>
 
-      {/* Expanded detail */}
+      {/* Detalhe expandido */}
       {expanded && hasDetail && (
         <div className="px-4 pb-3 pt-1 ml-32 sm:ml-0">
           <div
@@ -125,8 +125,8 @@ export function AuditLog() {
   const [moduleFilter, setModuleFilter] = useState<ModuleFilter>('Todos');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('Todos');
 
-  // Histórico de alterações é uma área sensível (auditoria) — restrita a
-  // Administrativo e TI, mesmo que alguém digite a URL direto.
+  // O histórico é uma área sensível: só os perfis TI e Dono acessam, mesmo que alguém
+  // digite a URL direto (o link também fica escondido no menu).
   const allowedRoles = ['TI', 'Dono'];
   if (!activeUser || !allowedRoles.includes(activeUser.role)) {
     return (
@@ -144,6 +144,7 @@ export function AuditLog() {
   const modules: ModuleFilter[] = ['Todos', 'Obras', 'Etapas', 'Despesas', 'Documentos', 'Usuários'];
   const actions: ActionFilter[] = ['Todos', 'Criou', 'Editou', 'Removeu'];
 
+  // aplica os filtros de módulo e ação e a busca de texto (nome, usuário, campo e valores)
   const filtered = auditLog.filter(e => {
     const matchModule = moduleFilter === 'Todos' || e.module === moduleFilter;
     const matchAction = actionFilter === 'Todos' || e.action === actionFilter;
@@ -160,7 +161,7 @@ export function AuditLog() {
   return (
     <div className="max-w-5xl mx-auto">
 
-      {/* Header */}
+      {/* Cabeçalho */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -184,9 +185,9 @@ export function AuditLog() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filtros */}
       <div className="rounded-2xl p-4 mb-4" style={{ background: '#1a2332', border: '1px solid rgba(255,255,255,.06)' }}>
-        {/* Search */}
+        {/* Busca */}
         <div className="relative mb-3">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
@@ -199,7 +200,7 @@ export function AuditLog() {
           />
         </div>
 
-        {/* Module filter */}
+        {/* Filtro de módulo */}
         <div className="flex flex-wrap gap-2 mb-2">
           <span className="text-[10px] text-gray-600 self-center flex items-center gap-1"><Filter size={10} /> Módulo:</span>
           {modules.map(m => (
@@ -218,7 +219,7 @@ export function AuditLog() {
           ))}
         </div>
 
-        {/* Action filter */}
+        {/* Filtro de ação */}
         <div className="flex flex-wrap gap-2">
           <span className="text-[10px] text-gray-600 self-center flex items-center gap-1"><Filter size={10} /> Ação:</span>
           {actions.map(a => (
@@ -238,9 +239,9 @@ export function AuditLog() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Tabela */}
       <div className="rounded-2xl overflow-hidden" style={{ background: '#1a2332', border: '1px solid rgba(255,255,255,.06)' }}>
-        {/* Header */}
+        {/* Cabeçalho */}
         <div className="flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-gray-600 uppercase tracking-widest" style={{ background: 'rgba(255,255,255,.02)', borderBottom: '1px solid rgba(255,255,255,.05)' }}>
           <div className="w-32 hidden sm:block">Data / Hora</div>
           <div className="w-20">Módulo</div>

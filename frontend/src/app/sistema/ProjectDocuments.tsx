@@ -1,10 +1,7 @@
-/**
- * ProjectDocuments.tsx
- * Legal and technical document management screen.
- * The legal team uses this module to upload and track permits,
- * licences, contracts, and other required construction documents.
- */
+// Documentos legais e técnicos das obras (licenças, alvarás, contratos...).
+// Usado pela equipe jurídica para anexar e acompanhar a validade de cada um.
 import { useState, useRef, useCallback } from 'react';
+import { prepareUpload, ACCEPTED_FILES } from '../utils/fileUpload';
 import { useConstructionManagement, ProjectDocument, DocumentCategory, DocumentValidityStatus } from '../context/construction-context';
 import {
   Plus, X, Trash2, Pencil, FileText, Upload, Eye,
@@ -18,7 +15,7 @@ const DOCUMENT_CATEGORIES: DocumentCategory[] = [
   'Habite-se', 'Contrato', 'Laudo Técnico', 'Outros',
 ];
 
-/** Visual metadata for each document validity status. */
+// Cor e texto de cada situação de validade do documento.
 const VALIDITY_STATUS_STYLES: Record<DocumentValidityStatus, { label: string; badgeClasses: string; icon: React.ReactNode }> = {
   'Válido':    { label: 'Válido',    badgeClasses: 'bg-green-100 text-green-700',  icon: <CheckCircle  size={12} /> },
   'Vencendo':  { label: 'Vencendo',  badgeClasses: 'bg-yellow-100 text-yellow-700', icon: <AlertTriangle size={12} /> },
@@ -58,8 +55,9 @@ export function ProjectDocuments() {
   const [isSaving,             setIsSaving]             = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Filtered document list ───────────────────────────────────────────────────
+  // Lista de documentos filtrada
 
+  // a situação (Válido, Vencendo ou Vencido) é calculada pela data de validade na hora, não vem do banco
   const filteredDocuments = documents.filter(doc => {
     const effectiveStatus  = calculateDocumentStatus(doc);
     const matchesProject   = !selectedProjectId    || doc.obraId === selectedProjectId;
@@ -70,19 +68,19 @@ export function ProjectDocuments() {
     return matchesProject && matchesStatus && matchesSearch;
   });
 
-  // Counts per validity status for the summary cards
+  // quantidade de documentos por situação, para os cards de resumo
   const statusCounts = (Object.keys(VALIDITY_STATUS_STYLES) as DocumentValidityStatus[]).reduce(
     (acc, s) => { acc[s] = documents.filter(d => calculateDocumentStatus(d) === s).length; return acc; },
     {} as Record<DocumentValidityStatus, number>
   );
 
-  // Number of documents needing urgent attention
+  // documentos que precisam de atenção urgente
   const urgentDocumentCount = documents.filter(d => {
     const s = calculateDocumentStatus(d);
     return s === 'Vencendo' || s === 'Vencido';
   }).length;
 
-  // ── Modal handlers ────────────────────────────────────────────────────────────
+  // Abrir e fechar modais
 
   const openAddModal = () => {
     setDocumentForm({ ...EMPTY_DOCUMENT_FORM, obraId: selectedProjectId || (projects[0]?.id ?? '') });
@@ -109,21 +107,27 @@ export function ProjectDocuments() {
   const openDeleteModal  = (doc: ProjectDocument) => { setSelectedDocument(doc); setActiveModal('delete'); };
   const closeModal       = () => { setActiveModal(null); setSelectedDocument(null); };
 
-  // ── File upload handler ───────────────────────────────────────────────────────
+  // Upload do arquivo
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // só o Visualizador não anexa nem altera documentos (o servidor também confere)
+  const canEditDocuments = activeUser?.role !== 'Visualizador';
+
+  // imagens são reduzidas no navegador antes de ir pro servidor; PDF vai como está (até 5 MB)
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('Arquivo muito grande. Máximo: 5 MB.'); return; }
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const base64 = ev.target?.result as string;
-      setDocumentForm(prev => ({ ...prev, file: base64, fileName: file.name }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      const prepared = await prepareUpload(file);
+      setDocumentForm(prev => ({ ...prev, file: prepared.dataUrl, fileName: prepared.name }));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível anexar o arquivo.');
+    } finally {
+      input.value = ''; // permite escolher o mesmo arquivo de novo
+    }
   }, []);
 
-  // ── Form submit ──────────────────────────────────────────────────────────────
+  // Salvar formulário
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,21 +166,25 @@ export function ProjectDocuments() {
 
   return (
     <div className="space-y-5">
-      {/* Page header */}
+      {/* Cabeçalho da página */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-black text-[#1a2332]">Documentos</h1>
           <p className="text-gray-500 text-sm">Gestão jurídica e técnica de documentos por obra</p>
         </div>
+        {canEditDocuments && (
+        <>
         <button
           onClick={openAddModal}
           className="flex items-center gap-2 bg-[#1a2332] text-white font-bold px-5 py-2.5 rounded-xl hover:bg-[#243347] transition text-sm"
         >
           <Plus size={16} /> Novo Documento
         </button>
+        </>
+        )}
       </div>
 
-      {/* Urgency alert */}
+      {/* Alerta de documentos urgentes */}
       {urgentDocumentCount > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
           <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
@@ -191,7 +199,7 @@ export function ProjectDocuments() {
         </div>
       )}
 
-      {/* Validity status summary cards */}
+      {/* Cards de resumo por validade */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {(Object.entries(VALIDITY_STATUS_STYLES) as [DocumentValidityStatus, typeof VALIDITY_STATUS_STYLES[DocumentValidityStatus]][]).map(
           ([status, meta]) => (
@@ -218,7 +226,7 @@ export function ProjectDocuments() {
         )}
       </div>
 
-      {/* Search & project filter */}
+      {/* Busca e filtro por obra */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -241,7 +249,7 @@ export function ProjectDocuments() {
         </select>
       </div>
 
-      {/* Desktop table */}
+      {/* Tabela (desktop) */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hidden md:block">
         {filteredDocuments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-gray-300">
@@ -312,12 +320,16 @@ export function ProjectDocuments() {
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
+                        {canEditDocuments && (
+                        <>
                         <button onClick={() => openEditModal(doc)} className="text-orange-500 hover:text-orange-700 transition" title="Editar">
                           <Pencil size={15} />
                         </button>
                         <button onClick={() => openDeleteModal(doc)} className="text-red-500 hover:text-red-700 transition" title="Excluir">
                           <Trash2 size={15} />
                         </button>
+                        </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -328,7 +340,7 @@ export function ProjectDocuments() {
         )}
       </div>
 
-      {/* Mobile cards */}
+      {/* Cards (celular) */}
       <div className="md:hidden space-y-3">
         {filteredDocuments.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center text-gray-300 border border-gray-100">
@@ -365,19 +377,23 @@ export function ProjectDocuments() {
                     <FileImage size={12} /> Arquivo
                   </button>
                 )}
+                {canEditDocuments && (
+                <>
                 <button onClick={() => openEditModal(doc)} className="flex items-center gap-1.5 text-orange-500 text-xs font-semibold ml-auto">
                   <Pencil size={13} /> Editar
                 </button>
                 <button onClick={() => openDeleteModal(doc)} className="flex items-center gap-1.5 text-red-500 text-xs font-semibold">
                   <Trash2 size={13} /> Excluir
                 </button>
+                </>
+                )}
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* ── Add / Edit Modal ───────────────────────────────────────────────────── */}
+      {/* Modal de criar/editar */}
       {(activeModal === 'add' || activeModal === 'edit') && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-xl my-8 p-7 shadow-2xl">
@@ -464,7 +480,7 @@ export function ProjectDocuments() {
                   className={baseInputClass + ' resize-none'} />
               </div>
 
-              {/* File attachment */}
+              {/* Anexo do arquivo */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Arquivo do Documento</label>
                 <div onClick={() => fileInputRef.current?.click()}
@@ -480,11 +496,11 @@ export function ProjectDocuments() {
                     <div className="text-gray-400">
                       <Upload size={20} className="mx-auto mb-1" />
                       <p className="text-xs font-semibold">Clique para anexar o documento</p>
-                      <p className="text-xs mt-0.5">PDF, JPG, PNG · Máx. 5 MB</p>
+                      <p className="text-xs mt-0.5">PDF, JPG ou PNG · PDF até 5 MB</p>
                     </div>
                   )}
                 </div>
-                <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={handleFileChange} />
+                <input ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleFileChange} />
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -504,7 +520,7 @@ export function ProjectDocuments() {
         </div>
       )}
 
-      {/* ── File Preview Modal ─────────────────────────────────────────────────── */}
+      {/* Modal de pré-visualização do arquivo */}
       {activeModal === 'preview' && selectedDocument && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 overflow-y-auto" onClick={closeModal}>
           <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
@@ -558,7 +574,7 @@ export function ProjectDocuments() {
         </div>
       )}
 
-      {/* ── Delete Confirmation Modal ──────────────────────────────────────────── */}
+      {/* Modal de confirmar exclusão */}
       {activeModal === 'delete' && selectedDocument && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">

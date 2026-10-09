@@ -10,6 +10,8 @@ import { Expenses }               from './sistema/Expenses';
 import { ProjectDocuments }       from './sistema/ProjectDocuments';
 import { AuditLog }               from './sistema/AuditLog';
 
+// Mapa das telas: /login é pública e as demais ficam dentro do AppShell (menu lateral), que
+// manda de volta pro login se não houver sessão. '/', '/sistema' e '/sistema/login' só redirecionam.
 export const router = createBrowserRouter([
   { path: '/',              loader: () => redirect('/login') },
   { path: '/login',         Component: LoginPage },

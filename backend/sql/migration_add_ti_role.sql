@@ -1,5 +1,5 @@
--- Migração: adiciona o perfil "TI" à trava (CHECK) da coluna role,
--- sem precisar apagar/recriar a tabela usuarios nem os dados existentes.
+-- Migração: libera os perfis "TI" e "Dono" na regra (CHECK) da coluna role, sem apagar a
+-- tabela usuarios nem os dados que já existem.
 
 DO $$
 DECLARE
@@ -16,5 +16,5 @@ BEGIN
 
   ALTER TABLE usuarios
     ADD CONSTRAINT usuarios_role_check
-    CHECK (role IN ('Administrativo','Engenheiro','Mestre de Obras','Visualizador','TI'));
+    CHECK (role IN ('Administrativo','Engenheiro','Mestre de Obras','Visualizador','TI','Dono'));
 END $$;

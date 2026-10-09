@@ -1,8 +1,5 @@
-/**
- * Reports.tsx
- * Performance and delay reporting screen.
- * Renders planned-vs-actual progress charts and exports a PDF report.
- */
+// Relatórios de desempenho e atrasos: gráfico planejado x real
+// e exportação em PDF e Excel.
 import { useConstructionManagement } from '../context/construction-context';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -15,11 +12,12 @@ import * as XLSX from 'xlsx';
 export function Reports() {
   const { projects, scheduleStages, expenses, teamMembers, getScheduleStatus, calculateTotalExpenses } = useConstructionManagement();
 
-  // ── Performance KPIs ────────────────────────────────────────────────────────
+  // Indicadores de desempenho
 
   const totalDelayedStages  = scheduleStages.filter(s => s.status === 'Atrasada').length;
   const projectsUnderReview = projects.filter(p => getScheduleStatus(p) === 'Atrasada').length;
 
+  // média de dias de atraso entre as etapas atrasadas (hoje menos o término previsto de cada uma)
   const averageDaysOverdue = (() => {
     const delayedStages = scheduleStages.filter(s => s.status === 'Atrasada');
     if (delayedStages.length === 0) return 0;
@@ -34,6 +32,7 @@ export function Reports() {
     return Math.round(totalDays / delayedStages.length);
   })();
 
+  // atraso crítico: etapa atrasada há mais de 15 dias
   const criticalDelayCount = scheduleStages.filter(s => {
     if (s.status !== 'Atrasada') return false;
     const today         = new Date();
@@ -44,12 +43,10 @@ export function Reports() {
     return daysOverdue > 15;
   }).length;
 
-  // ── Planned vs Actual Progress Chart ────────────────────────────────────────
+  // Gráfico planejado x real
 
-  /**
-   * Calculates expected progress based on elapsed calendar time (time-based planning).
-   * Used in the report chart to show the planned curve without manual overrides.
-   */
+  // Progresso esperado de acordo com o tempo que já passou (só calendário,
+  // sem ajuste manual). É a curva "planejada" do gráfico.
   const calculateExpectedProgressFromDates = (project: typeof projects[0]) => {
     const today    = new Date();
     const start    = new Date(project.startDate);
@@ -61,6 +58,7 @@ export function Reports() {
     return Math.round((elapsed / totalDuration) * 100);
   };
 
+  // dados do gráfico: Planejado (pelo tempo que já passou) x Realizado (progresso salvo da obra)
   const progressComparisonChartData = projects.map((p, index) => ({
     name:      `${index + 1}. ${p.name.length > 16 ? p.name.substring(0, 14) + '…' : p.name}`,
     fullName:  `${index + 1}. ${p.name}`,
@@ -68,7 +66,7 @@ export function Reports() {
     Realizado: p.progress,
   }));
 
-  // ── Delayed Stages Table ─────────────────────────────────────────────────────
+  // Tabela de etapas atrasadas
 
   const delayedStageReportRows = scheduleStages
     .filter(s => s.status === 'Atrasada')
@@ -80,6 +78,7 @@ export function Reports() {
       const daysOverdue = Math.max(0, Math.round(
         (today.getTime() - plannedEnd.getTime()) / (1000 * 60 * 60 * 24)
       ));
+      // mesma regra do dashboard: mais de 20 dias é Alto, mais de 10 é Médio e o resto é Baixo
       const riskLevel   = daysOverdue > 20 ? 'Alto' : daysOverdue > 10 ? 'Médio' : 'Baixo';
       return {
         projectName:   project?.name      ?? '—',
@@ -96,8 +95,10 @@ export function Reports() {
     return 'bg-green-100 text-green-700';
   };
 
-  // ── PDF Export ────────────────────────────────────────────────────────────────
+  // Exportar PDF
 
+  // monta o PDF com a biblioteca jsPDF, desenhando texto e linhas por coordenada (em mm, A4).
+  // Quando a posição vertical passa de 270 cria uma página nova.
   const exportToPDF = () => {
     const pdfDoc  = new jsPDF();
     const today   = new Date().toLocaleDateString('pt-BR');
@@ -105,7 +106,7 @@ export function Reports() {
       ? Math.round(projects.reduce((s, p) => s + p.progress, 0) / projects.length)
       : 0;
 
-    // Header band
+    // faixa do topo
     pdfDoc.setFillColor(26, 35, 50);
     pdfDoc.rect(0, 0, 210, 35, 'F');
     pdfDoc.setTextColor(255, 255, 255);
@@ -119,7 +120,7 @@ export function Reports() {
 
     let y = 48;
 
-    // KPIs section
+    // indicadores
     pdfDoc.setTextColor(26, 35, 50);
     pdfDoc.setFontSize(13);
     pdfDoc.setFont('helvetica', 'bold');
@@ -147,7 +148,7 @@ export function Reports() {
 
     y += 6;
 
-    // Project progress table
+    // tabela de progresso das obras
     pdfDoc.setFont('helvetica', 'bold');
     pdfDoc.setFontSize(13);
     pdfDoc.setTextColor(26, 35, 50);
@@ -183,7 +184,7 @@ export function Reports() {
 
     y += 6;
 
-    // Delayed stages table
+    // tabela de etapas atrasadas
     if (delayedStageReportRows.length > 0) {
       pdfDoc.setFont('helvetica', 'bold');
       pdfDoc.setFontSize(13);
@@ -222,12 +223,13 @@ export function Reports() {
     pdfDoc.save(`relatorio-dalpiaz-${today.replace(/\//g, '-')}.pdf`);
   };
 
-  // ── Excel Export ──────────────────────────────────────────────────────────────
+  // Exportar Excel
 
+  // monta o Excel com a biblioteca xlsx, uma aba por assunto (obras, etapas, despesas e indicadores)
   const exportToExcel = () => {
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: Obras
+    // aba 1: Obras
     const obrasData = projects.map(p => ({
       'Nome da Obra':       p.name,
       'Cliente':            p.client,
@@ -247,7 +249,7 @@ export function Reports() {
     }));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(obrasData), 'Obras');
 
-    // Sheet 2: Etapas
+    // aba 2: Etapas
     const etapasData = scheduleStages.map(s => {
       const project     = projects.find(p => p.id === s.obraId);
       const responsible = teamMembers.find(m => m.id === s.responsibleId);
@@ -265,7 +267,7 @@ export function Reports() {
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(etapasData), 'Etapas');
 
-    // Sheet 3: Despesas
+    // aba 3: Despesas
     const despesasData = expenses.map(e => {
       const project = projects.find(p => p.id === e.obraId);
       const stage   = scheduleStages.find(s => s.id === e.etapaId);
@@ -284,7 +286,7 @@ export function Reports() {
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(despesasData), 'Despesas');
 
-    // Sheet 4: Indicadores
+    // aba 4: Indicadores
     const avgProgress = projects.length > 0
       ? Math.round(projects.reduce((s, p) => s + p.progress, 0) / projects.length)
       : 0;
@@ -307,7 +309,7 @@ export function Reports() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
+      {/* Cabeçalho da página */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-black text-[#1a2332]">Relatórios</h1>
@@ -329,7 +331,7 @@ export function Reports() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* Cards de indicadores */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Etapas Atrasadas', value: totalDelayedStages,  icon: Clock,         color: 'text-red-500',    light: 'bg-red-50' },
@@ -347,12 +349,11 @@ export function Reports() {
         ))}
       </div>
 
-      {/* Planned vs Actual Progress Chart */}
+      {/* Gráfico de progresso planejado x real */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <h2 className="font-black text-[#1a2332] text-lg mb-5">Planejado vs Realizado por Obra</h2>
-        {/* Rolagem horizontal: cada obra ocupa no mínimo 90px, então com muitas
-            obras cadastradas o gráfico continua legível (você desliza pros lados)
-            em vez de espremer todas as barras na largura da tela. */}
+        {/* rolagem horizontal: cada obra ocupa pelo menos 90px, então com muitas obras
+            o gráfico continua legível em vez de espremer as barras */}
         <div className="overflow-x-auto">
           <div style={{ minWidth: Math.max(progressComparisonChartData.length * 90, 600) }}>
             <ResponsiveContainer width="100%" height={280}>
@@ -382,7 +383,7 @@ export function Reports() {
         </div>
       </div>
 
-      {/* Delayed stages detail table */}
+      {/* Tabela de etapas atrasadas */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <h2 className="font-black text-[#1a2332] text-lg mb-4">Etapas com Atraso</h2>
         {delayedStageReportRows.length === 0 ? (

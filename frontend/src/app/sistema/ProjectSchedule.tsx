@@ -1,8 +1,5 @@
-/**
- * ProjectSchedule.tsx
- * Construction timeline screen — tracks each phase of a project,
- * including planned vs actual dates and stage-level progress.
- */
+// Cronograma da obra: cada etapa com datas planejadas x reais
+// e o progresso de cada uma.
 import { useState, useEffect } from 'react';
 import { useConstructionManagement, ScheduleStage } from '../context/construction-context';
 import { useSearchParams } from 'react-router';
@@ -28,21 +25,21 @@ export function ProjectSchedule() {
   } = useConstructionManagement();
 
   const [searchParams]    = useSearchParams();
-  // Support ?obraId=xxx for direct navigation from the Projects screen
+  // aceita ?obraId=xxx na URL, pra abrir direto a partir da tela de obras
   const projectIdParam    = searchParams.get('obraId');
 
   const [selectedProjectId, setSelectedProjectId] = useState(() =>
     projectIdParam || projects[0]?.id || ''
   );
 
-  // Sync when projects load after component mount
+  // atualiza quando as obras terminam de carregar
   useEffect(() => {
     if (!selectedProjectId && projects.length > 0) {
       setSelectedProjectId(projects[0].id);
     }
   }, [projects, selectedProjectId]);
 
-  // Apply URL param when it changes
+  // aplica o parâmetro da URL quando ele mudar
   useEffect(() => {
     if (projectIdParam && projects.find(p => p.id === projectIdParam)) {
       setSelectedProjectId(projectIdParam);
@@ -54,15 +51,17 @@ export function ProjectSchedule() {
   const [stageForm,      setStageForm]      = useState(EMPTY_STAGE_FORM);
   const [stagePendingDeleteId, setStagePendingDeleteId] = useState<string | null>(null);
 
+  // quem mexe no cronograma: Administrativo, Engenheiro e Mestre de Obras
   const canEditSchedule =
     activeUser?.role === 'Administrativo' ||
     activeUser?.role === 'Engenheiro' ||
     activeUser?.role === 'Mestre de Obras';
 
-  // ── Derived data ─────────────────────────────────────────────────────────────
+  // Dados derivados
 
   const selectedProject   = projects.find(p => p.id === selectedProjectId);
   const projectStageList  = scheduleStages.filter(s => s.obraId === selectedProjectId);
+  // progresso geral da obra: média das etapas (ou o progresso salvo na obra se ainda não tem etapa)
   const overallProjectProgress = projectStageList.length > 0
     ? Math.round(projectStageList.reduce((sum, s) => sum + s.progress, 0) / projectStageList.length)
     : (selectedProject?.progress ?? 0);
@@ -71,7 +70,7 @@ export function ProjectSchedule() {
   const resolveTeamMemberName = (id: string) =>
     teamMembers.find(m => m.id === id)?.name ?? '—';
 
-  // ── Modal handlers ────────────────────────────────────────────────────────────
+  // Abrir e fechar modais
 
   const openAddStageModal = () => {
     setStageForm({ ...EMPTY_STAGE_FORM });
@@ -96,6 +95,7 @@ export function ProjectSchedule() {
 
   const closeModal = () => { setActiveModal(null); setEditingStage(null); };
 
+  // o progresso da etapa é sempre limitado entre 0 e 100
   const handleStageFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -140,7 +140,7 @@ export function ProjectSchedule() {
     setStagePendingDeleteId(null);
   };
 
-  // ── Visual helpers ────────────────────────────────────────────────────────────
+  // Funções visuais
 
   const getStageStatusIcon = (status: ScheduleStage['status']) => {
     if (status === 'Concluída')    return <CheckCircle2 size={24} className="text-green-500" />;
@@ -156,7 +156,7 @@ export function ProjectSchedule() {
     return 'bg-gray-100 text-gray-500';
   };
 
-  /** Returns a human-readable schedule deviation label for completed or delayed stages. */
+  // Texto que mostra quantos dias a etapa adiantou ou atrasou.
   const getScheduleDeviationLabel = (stage: ScheduleStage) => {
     if (stage.status === 'Concluída' && stage.actualEnd && stage.plannedEnd) {
       const actualDate  = new Date(stage.actualEnd);
@@ -184,13 +184,13 @@ export function ProjectSchedule() {
 
   return (
     <div className="space-y-5">
-      {/* Page header */}
+      {/* Cabeçalho da página */}
       <div>
         <h1 className="text-2xl font-black text-[#1a2332]">Cronograma</h1>
         <p className="text-gray-500 text-sm">Acompanhe o progresso de cada etapa das obras</p>
       </div>
 
-      {/* Project selector */}
+      {/* Seletor de obra */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="flex-1">
           <label className="block text-xs font-semibold text-gray-500 mb-1.5">Selecione a Obra</label>
@@ -212,7 +212,7 @@ export function ProjectSchedule() {
         )}
       </div>
 
-      {/* Project summary banner */}
+      {/* Resumo da obra */}
       {selectedProject && (
         <div className="bg-blue-600 rounded-2xl p-5 text-white">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -243,7 +243,7 @@ export function ProjectSchedule() {
         </div>
       )}
 
-      {/* Construction timeline */}
+      {/* Linha do tempo da obra */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <h2 className="font-black text-[#1a2332] text-lg mb-6">Linha do Tempo</h2>
 
@@ -263,7 +263,7 @@ export function ProjectSchedule() {
               const deviationLabel = getScheduleDeviationLabel(stage);
               return (
                 <div key={stage.id} className="flex gap-5">
-                  {/* Timeline spine */}
+                  {/* Linha vertical da timeline */}
                   <div className="flex flex-col items-center">
                     <div className="shrink-0">{getStageStatusIcon(stage.status)}</div>
                     {index < projectStageList.length - 1 && (
@@ -271,7 +271,7 @@ export function ProjectSchedule() {
                     )}
                   </div>
 
-                  {/* Stage card */}
+                  {/* Card da etapa */}
                   <div className="flex-1 pb-6">
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                       <div className="flex items-start justify-between mb-3">
@@ -326,7 +326,7 @@ export function ProjectSchedule() {
                         </div>
                       </div>
 
-                      {/* Stage progress bar */}
+                      {/* Barra de progresso da etapa */}
                       <div className="mt-3 flex items-center gap-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-1.5">
                           <div
@@ -349,7 +349,7 @@ export function ProjectSchedule() {
         )}
       </div>
 
-      {/* ── Add / Edit Stage Modal ─────────────────────────────────────────────── */}
+      {/* Modal de criar/editar etapa */}
       {activeModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-lg my-8 p-7 shadow-2xl">
@@ -440,7 +440,7 @@ export function ProjectSchedule() {
         </div>
       )}
 
-      {/* ── Delete Stage Confirmation ─────────────────────────────────────────── */}
+      {/* Modal de confirmar exclusão da etapa */}
       {stagePendingDeleteId && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">

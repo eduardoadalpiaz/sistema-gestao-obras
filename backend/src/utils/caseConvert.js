@@ -1,4 +1,4 @@
-// Converte chaves de objeto entre snake_case (banco) e camelCase (API/front-end).
+// Converte as chaves entre snake_case (banco) e camelCase (API e front).
 
 function toCamel(row) {
   if (!row) return row;
