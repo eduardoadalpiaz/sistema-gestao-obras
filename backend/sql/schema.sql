@@ -28,6 +28,7 @@ CREATE TABLE obras (
   client          VARCHAR(150) NOT NULL,
   cep             VARCHAR(9),
   street          VARCHAR(200),
+  street_number   VARCHAR(20),
   neighborhood    VARCHAR(100),
   city            VARCHAR(100),
   state           VARCHAR(2),

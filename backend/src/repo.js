@@ -7,7 +7,7 @@ const { toSnake, mapRow, mapRows } = require("./utils/caseConvert");
 // antes de montar o SQL (id e datas ficam de fora porque o banco que preenche).
 const COLUMNS = {
   usuarios: ["name", "email", "password_hash", "phone", "role", "status", "verified", "verification_code"],
-  obras: ["name", "client", "cep", "street", "neighborhood", "city", "state", "responsible_id", "status", "progress",
+  obras: ["name", "client", "cep", "street", "street_number", "neighborhood", "city", "state", "responsible_id", "status", "progress",
     "start_date", "end_date", "area", "floors", "units", "team_size", "team_members", "estimated_cost",
     "client_budget", "tipo", "complexidade"],
   etapas: ["obra_id", "name", "responsible_id", "planned_start", "planned_end", "actual_end", "progress", "status", "notes"],

@@ -7,7 +7,7 @@ import {
   useCallback, useRef, ReactNode,
 } from 'react';
 import { toast } from 'sonner';
-import { api, ApiError, getToken, setToken, clearSession, readApiMessage, SESSION_EXPIRED_EVENT } from '../utils/api';
+import { api, API_BASE, ApiError, getToken, setToken, clearSession, readApiMessage, SESSION_EXPIRED_EVENT } from '../utils/api';
 
 // Tipos
 
@@ -58,6 +58,7 @@ export interface Project {
   client: string;
   cep: string;
   street: string;
+  streetNumber?: string;
   neighborhood: string;
   city: string;
   state: string;
@@ -408,6 +409,79 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     load();
     return () => { cancelled = true; };
   }, [activeUser?.id, loadVersion]);
+
+  // tempo real: o servidor avisa quando algo muda (conexão aberta) e a tela busca /data de novo.
+  // O intervalo de 60 s e a volta pra aba servem de reserva se a conexão cair.
+  useEffect(() => {
+    if (!activeUser) return;
+    let cancelled = false;
+    const controller = new AbortController();
+
+    const refresh = async () => {
+      if (document.hidden) return;
+      try {
+        const data = await api<{
+          users: TeamMember[];
+          obras: Project[];
+          stages: ScheduleStage[];
+          notifications: SystemNotification[];
+          gastos: Expense[];
+          documentos: ProjectDocument[];
+          audit: AuditEntry[];
+        }>('/data');
+        if (cancelled) return;
+        setTeamMembers(data.users ?? []);
+        setProjects(data.obras ?? []);
+        setScheduleStages(data.stages ?? []);
+        setSystemNotifications(data.notifications ?? []);
+        setExpenses(data.gastos ?? []);
+        setDocuments(data.documentos ?? []);
+        setAuditLog(data.audit ?? []);
+      } catch { /* na próxima tentativa tenta de novo */ }
+    };
+
+    // fica lendo a conexão aberta; se cair, espera um pouco e reconecta
+    const listen = async () => {
+      let wait = 1000;
+      while (!cancelled) {
+        try {
+          const token = getToken();
+          if (!token) return;
+          const res = await fetch(`${API_BASE}/events`, {
+            headers: { Authorization: `Bearer ${token}` },
+            signal: controller.signal,
+          });
+          if (res.status === 401) return;
+          if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+          wait = 1000;
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          while (!cancelled) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const parts = buffer.split('\n\n');
+            buffer = parts.pop() ?? '';
+            if (parts.some(p => p.includes('event: changed'))) refresh();
+          }
+        } catch { if (cancelled) return; }
+        await new Promise(r => setTimeout(r, wait));
+        wait = Math.min(wait * 2, 30000);
+      }
+    };
+    listen();
+
+    const timer = setInterval(refresh, 60000);
+    const onVisible = () => { if (!document.hidden) refresh(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [activeUser?.id]);
 
   // Cria notificação (uso interno)
 

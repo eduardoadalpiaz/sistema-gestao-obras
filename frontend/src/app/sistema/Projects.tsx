@@ -23,7 +23,7 @@ const COMPLEXIDADE_COLORS: Record<ObraComplexidade, string> = {
 type ProjectFormData = Omit<Project, 'id' | 'createdAt' | 'progress'>;
 
 const EMPTY_PROJECT_FORM: ProjectFormData = {
-  name: '', client: '', cep: '', street: '', neighborhood: '',
+  name: '', client: '', cep: '', street: '', streetNumber: '', neighborhood: '',
   city: '', state: '', responsibleId: '', status: 'Em andamento',
   startDate: '', endDate: '',
   area: undefined, floors: undefined, units: undefined, teamSize: undefined,
@@ -166,7 +166,7 @@ export function Projects() {
     setSelectedProject(project);
     setProjectForm({
       name: project.name, client: project.client, cep: project.cep,
-      street: project.street, neighborhood: project.neighborhood,
+      street: project.street, streetNumber: project.streetNumber ?? '', neighborhood: project.neighborhood,
       city: project.city, state: project.state,
       responsibleId: project.responsibleId, status: project.status,
       startDate: project.startDate, endDate: project.endDate,
@@ -574,6 +574,10 @@ export function Projects() {
                     <input name="street" value={projectForm.street} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="font-normal text-gray-400">(opcional)</span></label>
+                    <input name="streetNumber" value={projectForm.streetNumber ?? ''} onChange={handleFieldChange} maxLength={20} placeholder="Ex.: 123 ou s/n" className={baseInputClass} />
+                  </div>
+                  <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Bairro *</label>
                     <input name="neighborhood" value={projectForm.neighborhood} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
@@ -923,7 +927,7 @@ export function Projects() {
                 <div className="flex items-center justify-between mb-1">
                   <div className="text-gray-400 text-xs flex items-center gap-1"><MapPin size={12} /> Endereço</div>
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedProject.street}, ${selectedProject.neighborhood}, ${selectedProject.city}, ${selectedProject.state}`)}`}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedProject.street}${selectedProject.streetNumber ? ', ' + selectedProject.streetNumber : ''}, ${selectedProject.neighborhood}, ${selectedProject.city}, ${selectedProject.state}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-[10px] text-blue-500 hover:text-blue-700 font-semibold transition"
@@ -932,7 +936,7 @@ export function Projects() {
                   </a>
                 </div>
                 <div className="font-semibold text-[#1a2332] text-sm mb-3">
-                  {selectedProject.street}, {selectedProject.neighborhood} – {selectedProject.city}/{selectedProject.state} · CEP {selectedProject.cep}
+                  {selectedProject.street}{selectedProject.streetNumber ? `, ${selectedProject.streetNumber}` : ''}, {selectedProject.neighborhood} – {selectedProject.city}/{selectedProject.state} · CEP {selectedProject.cep}
                 </div>
                 {/* Mapa embutido (embed público do Google Maps, não precisa de chave de API) */}
                 {(selectedProject.street || selectedProject.city) && (
@@ -944,7 +948,7 @@ export function Projects() {
                       style={{ border: 0, display: 'block' }}
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
-                      src={`https://www.google.com/maps?q=${encodeURIComponent(`${selectedProject.street}, ${selectedProject.neighborhood}, ${selectedProject.city}, ${selectedProject.state}`)}&output=embed`}
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(`${selectedProject.street}${selectedProject.streetNumber ? ', ' + selectedProject.streetNumber : ''}, ${selectedProject.neighborhood}, ${selectedProject.city}, ${selectedProject.state}`)}&output=embed`}
                     />
                   </div>
                 )}

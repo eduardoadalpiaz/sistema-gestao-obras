@@ -11,6 +11,7 @@ const { asyncHandler } = require("./middleware/asyncHandler");
 const { errorHandler } = require("./middleware/errorHandler");
 const { authenticate } = require("./middleware/auth");
 const { rateLimit } = require("./middleware/rateLimit");
+const { subscribe, notifyChange, closeAll } = require("./realtime");
 
 const authRoutes          = require("./routes/auth");
 const usersRoutes         = require("./routes/users");
@@ -42,7 +43,7 @@ app.use((_req, res, next) => {
 
 // Comprime as respostas: o /data pode ficar bem grande quando tem muita obra,
 // gasto e documento.
-app.use(compression());
+app.use(compression({ filter: (req, res) => (req.path === "/events" ? false : compression.filter(req, res)) }));
 
 // CORS: define quem pode chamar a API pelo navegador (endereço do front, em CORS_ORIGIN;
 // pode ter mais de um, separados por vírgula).
@@ -108,6 +109,17 @@ app.get("/data", authenticate, asyncHandler(async (req, res) => {
   res.json({ users: safeUsers, obras, stages, notifications, gastos, documentos, audit });
 }));
 
+// Tempo real: conexão aberta que recebe um aviso quando algo muda.
+app.get("/events", authenticate, subscribe);
+
+// Depois de qualquer alteração que deu certo, avisa todas as telas abertas.
+app.use(["/users", "/obras", "/stages", "/gastos", "/documentos", "/notifications"], (req, res, next) => {
+  if (req.method !== "GET" && req.method !== "OPTIONS") {
+    res.on("finish", () => { if (res.statusCode < 400) notifyChange(); });
+  }
+  next();
+});
+
 // Cada recurso tem o seu arquivo em src/routes. Pra criar um novo, é só fazer
 // o arquivo e registrar aqui.
 // /auth é público (é onde se faz login) e tem limite próprio por IP; o resto exige login.
@@ -142,6 +154,7 @@ const server = app.listen(PORT, () => {
 // Assim nenhuma resposta fica cortada no meio.
 function shutdown(signal) {
   console.log(`\n[server] Recebido ${signal}, encerrando graciosamente...`);
+  closeAll();
   server.close(async () => {
     await pool.end();
     console.log("[server] Conexões fechadas. Até logo.");

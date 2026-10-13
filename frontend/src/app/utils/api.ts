@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 // endereço da API: vem da variável VITE_API_BASE (na Vercel é a URL do Railway).
 // Sem ela, usa o backend local.
-const API_BASE = import.meta.env?.VITE_API_BASE ?? 'http://localhost:3001';
+export const API_BASE = import.meta.env?.VITE_API_BASE ?? 'http://localhost:3001';
 
 const TOKEN_KEY = 'dp_token';
 const USER_KEY = 'dp_current_user';
