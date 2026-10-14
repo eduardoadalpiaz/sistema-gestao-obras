@@ -53,7 +53,7 @@ export function TeamManagement() {
     setMemberForm({
       name:     member.name,
       email:    member.email.toLowerCase(),
-      password: member.password,
+      password: '',
       phone:    member.phone,
       role:     member.role,
       status:   member.status,
@@ -106,10 +106,11 @@ export function TeamManagement() {
     await updateTeamMember(selectedMember.id, {
       name:     memberForm.name,
       email:    memberForm.email,
-      password: memberForm.password,
       phone:    memberForm.phone,
       role:     memberForm.role,
       status:   memberForm.status,
+      // senha só vai se foi digitada; em branco mantém a atual
+      ...(memberForm.password ? { password: memberForm.password } : {}),
     });
     closeModal();
   };
@@ -295,14 +296,14 @@ export function TeamManagement() {
 
             <form onSubmit={activeModal === 'add' ? handleAddMember : handleEditMember} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Nome Completo *</label>
-                <input name="name" value={memberForm.name} onChange={handleMemberFormChange} required className={baseInputClass} />
+                <label htmlFor="user-name" className="block text-sm font-semibold text-gray-700 mb-1">Nome Completo *</label>
+                <input id="user-name" name="name" value={memberForm.name} onChange={handleMemberFormChange} required className={baseInputClass} />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email Corporativo *</label>
+                <label htmlFor="user-email" className="block text-sm font-semibold text-gray-700 mb-1">Email Corporativo *</label>
                 <input
-                  name="email" type="email" value={memberForm.email}
+                  id="user-email" name="email" type="email" value={memberForm.email}
                   onChange={e => { setIsEmailTouched(true); handleMemberFormChange(e); }}
                   required className={baseInputClass}
                   placeholder="nome@dalpiazincorporadora.com.br"
@@ -315,24 +316,30 @@ export function TeamManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Senha *</label>
-                <input name="password" type="text" value={memberForm.password} onChange={handleMemberFormChange} required minLength={8} className={baseInputClass} placeholder="Senha de acesso (mínimo 8 caracteres)" />
+                <label htmlFor="user-password" className="block text-sm font-semibold text-gray-700 mb-1">
+                  Senha {activeModal === 'add' ? '*' : ''}
+                </label>
+                <input
+                  id="user-password" name="password" type="text" value={memberForm.password}
+                  onChange={handleMemberFormChange} required={activeModal === 'add'} minLength={8} className={baseInputClass}
+                  placeholder={activeModal === 'add' ? 'Senha de acesso (mínimo 8 caracteres)' : 'Deixe em branco para manter a senha atual'}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Telefone</label>
-                  <input name="phone" value={memberForm.phone} onChange={handleMemberFormChange} placeholder="(54) 9 9999-0000" className={baseInputClass} />
+                  <label htmlFor="user-phone" className="block text-sm font-semibold text-gray-700 mb-1">Telefone</label>
+                  <input id="user-phone" name="phone" value={memberForm.phone} onChange={handleMemberFormChange} placeholder="(54) 9 9999-0000" className={baseInputClass} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Cargo *</label>
-                  <select name="role" value={memberForm.role} onChange={handleMemberFormChange} required className={baseInputClass + ' bg-white'}>
+                  <label htmlFor="user-role" className="block text-sm font-semibold text-gray-700 mb-1">Cargo *</label>
+                  <select id="user-role" name="role" value={memberForm.role} onChange={handleMemberFormChange} required className={baseInputClass + ' bg-white'}>
                     {ASSIGNABLE_ROLES.map(r => <option key={r}>{r}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Status *</label>
-                  <select name="status" value={memberForm.status} onChange={handleMemberFormChange} className={baseInputClass + ' bg-white'}>
+                  <label htmlFor="user-status" className="block text-sm font-semibold text-gray-700 mb-1">Status *</label>
+                  <select id="user-status" name="status" value={memberForm.status} onChange={handleMemberFormChange} className={baseInputClass + ' bg-white'}>
                     <option>Ativo</option>
                     <option>Inativo</option>
                   </select>
