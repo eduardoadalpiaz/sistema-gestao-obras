@@ -1,0 +1,27 @@
+# {$DOMAIN} vem do .env (ex.: vm-obras-eduardo.northcentralus.cloudapp.azure.com).
+# O Caddy pega o certificado HTTPS sozinho.
+{$DOMAIN} {
+	# /api/* vai para o back-end (sem o prefixo /api)
+	handle_path /api/* {
+		# flush_interval -1 mantém o tempo real (SSE) sem atraso
+		reverse_proxy api:3001 {
+			flush_interval -1
+		}
+	}
+
+	# o resto é o site (React)
+	handle {
+		encode gzip
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Strict-Transport-Security "max-age=31536000"
+	}
+}
