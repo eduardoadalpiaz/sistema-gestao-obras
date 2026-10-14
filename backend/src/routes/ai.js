@@ -10,7 +10,7 @@ const router = express.Router();
 // A chave fica só aqui no backend e nunca vai pro navegador. O front chama
 // /ai/analyze-obra e recebe o texto pronto.
 // O modelo vem do GEMINI_MODEL porque o Google desliga modelos antigos de tempos
-// em tempos; assim dá pra trocar no Railway sem mexer no código.
+// em tempos; assim dá pra trocar no .env do servidor sem mexer no código.
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const GEMINI_TIMEOUT_MS = 20_000;
 

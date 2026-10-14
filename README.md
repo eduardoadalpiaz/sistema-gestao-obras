@@ -75,7 +75,7 @@ Tecnologias previstas:
 * **Banco de dados:** PostgreSQL;
 * **Autenticação:** JWT;
 * **Envio de e-mails:** Nodemailer;
-* **Hospedagem:** Vercel e Railway;
+* **Hospedagem:** Azure (máquina virtual com Docker Compose, Caddy com HTTPS automático e deploy via GitHub Actions);
 * **APIs externas:** consulta de CEP, mapas e e-mail.
 
 ## Resultados esperados

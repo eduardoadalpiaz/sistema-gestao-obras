@@ -6,7 +6,7 @@ const crypto = require("crypto");
 let secret = process.env.JWT_SECRET;
 if (!secret || secret.length < 24 || /^troque/i.test(secret)) {
   secret = crypto.randomBytes(48).toString("hex");
-  console.warn("[segurança] JWT_SECRET ausente ou fraco: usando um segredo temporário. Defina JWT_SECRET no Railway.");
+  console.warn("[segurança] JWT_SECRET ausente ou fraco: usando um segredo temporário. Defina JWT_SECRET no .env do servidor.");
 }
 
 module.exports = {

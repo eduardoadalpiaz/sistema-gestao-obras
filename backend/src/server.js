@@ -26,7 +26,7 @@ const aiRoutes            = require("./routes/ai");
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Atrás do proxy do Railway: sem isso o IP de todo mundo apareceria igual (e os limites de uso não funcionariam).
+// Atrás do proxy (Caddy): sem isso o IP de todo mundo apareceria igual (e os limites de uso não funcionariam).
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
 
@@ -75,7 +75,7 @@ app.use((req, res, next) =>
 app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 
 // O /health faz um SELECT 1 no banco pra saber se o serviço está funcionando de
-// verdade, e não só se o Node está de pé. É o endereço que o Railway pode checar.
+// verdade, e não só se o Node está de pé. É o endereço que o Docker checa (healthcheck).
 app.get("/health", async (_req, res) => {
   try {
     await checkConnection();
@@ -149,7 +149,7 @@ const server = app.listen(PORT, () => {
   console.log(`API rodando em http://localhost:${PORT}`);
 });
 
-// Quando o Railway reinicia (deploy novo, por exemplo), o servidor para de aceitar
+// Quando o servidor reinicia (deploy novo, por exemplo), o servidor para de aceitar
 // conexões, espera o que está em andamento terminar e só então fecha o banco.
 // Assim nenhuma resposta fica cortada no meio.
 function shutdown(signal) {

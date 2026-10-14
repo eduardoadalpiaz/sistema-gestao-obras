@@ -12,7 +12,7 @@ o mesmo contrato de endpoints já usado pelo front-end (`construction-context.ts
 
 ## 1. Configurar o banco
 
-Crie um banco PostgreSQL (local, Railway, Render, etc.) e rode o schema:
+Crie um banco PostgreSQL (local ou no Docker) e rode o schema:
 
 ```bash
 psql "$DATABASE_URL" -f sql/schema.sql
@@ -41,7 +41,7 @@ curto da situação da obra usando a API do Google Gemini. A chamada é feita
 **só pelo backend**; a chave nunca vai para o navegador.
 
 1. Gere uma chave gratuita em https://aistudio.google.com/apikey
-2. Local: coloque em `GEMINI_API_KEY` no `.env`. Railway: aba **Variables**
+2. Local: coloque em `GEMINI_API_KEY` no `.env`. Servidor: arquivo `.env`
    do serviço do backend → `GEMINI_API_KEY` → **Deploy**.
 3. (Opcional) `GEMINI_MODEL` troca o modelo (padrão: `gemini-3.5-flash-lite`).
    O Google desliga modelos antigos periodicamente — veja
@@ -59,32 +59,30 @@ npm start       # produção
 
 A API sobe em `http://localhost:3001` (ou a porta definida em `PORT`).
 
-## 4. Deploy (conforme o artigo: Railway)
+## 4. Deploy (Azure + Docker Compose)
 
-1. Suba este diretório `backend/` como um projeto no Railway (ou Render/Fly.io)
-2. Adicione um serviço PostgreSQL no Railway e copie a `DATABASE_URL` gerada
-3. Rode `sql/schema.sql` nesse banco (Railway tem um console SQL, ou use `psql`)
-4. Configure as variáveis de ambiente do `.env.example` no painel do Railway
-5. Copie a URL pública gerada pelo Railway (ex: `https://seu-app.up.railway.app`)
+Em produção, tudo roda em uma máquina virtual na Azure, com três containers
+(banco PostgreSQL, API e site com Caddy). Na raiz do repositório:
 
-## 5. Único ajuste necessário no front-end
+1. Instale Docker e Git na máquina e clone o repositório
+2. Copie `.env.producao.example` para `.env` e preencha `DOMAIN`, `POSTGRES_PASSWORD`,
+   `JWT_SECRET` (e `GEMINI_API_KEY`, se usar a IA)
+3. Suba tudo: `docker compose up -d --build`
+4. Crie o banco rodando `backend/sql/schema.sql` (ou restaure um backup com `psql`)
+5. A cada push na `main`, o GitHub Actions roda o CI e, se passar, o workflow `Deploy`
+   atualiza o servidor por SSH (segredos `SERVER_HOST`, `SERVER_USER` e `SERVER_SSH_KEY`)
 
-O front está correto e não precisa de nenhuma mudança de lógica — só aponta para
-o endereço antigo do Supabase. Troque apenas a constante `API_BASE` em
-`src/app/context/construction-context.tsx`:
+O Caddy serve o site em HTTPS e encaminha `/api/*` para a API.
 
-```ts
-// antes
-const API_BASE = 'https://xvcineznlfvdkpujcgvp.supabase.co/functions/v1/server/make-server-19b26de2';
+## 5. Endereço da API no front-end
 
-// depois
-const API_BASE = 'https://seu-app.up.railway.app';
-```
+O front lê o endereço da API da variável `VITE_API_BASE` (`src/app/utils/api.ts`).
+Em produção o build usa `/api`; em desenvolvimento, sem a variável, usa
+`http://localhost:3001`.
 
 Todos os endpoints (`/data`, `/auth/login`, `/auth/verify`, `/users`, `/obras`,
-`/stages`, `/gastos`, `/documentos`, `/notifications`, `/audit`) têm exatamente
-o mesmo caminho e formato de resposta (JSON camelCase) que o front já espera —
-por isso nenhuma outra linha do front precisa mudar.
+`/stages`, `/gastos`, `/documentos`, `/notifications`, `/audit`) têm o formato de
+resposta (JSON camelCase) que o front espera.
 
 ## Endpoints
 
@@ -152,7 +150,7 @@ uma indisponibilidade momentânea.
   e os logins caem a cada reinício) e `CORS_ORIGIN` (endereço do front). Para gerar o segredo:
   `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
 - **Troque a senha do `admin123`** no primeiro acesso (tela Usuários → editar).
-- **Conferir o sistema publicado:** `./verificar-producao.sh https://seu-front.vercel.app https://seu-backend.up.railway.app`
+- **Conferir o sistema publicado:** `./verificar-producao.sh https://seu-dominio https://seu-dominio/api`
   (na raiz do projeto) faz as consultas de segurança (login obrigatório, CORS, cabeçalhos,
   senha padrão e segredos no código do front) e mostra OK, ATENÇÃO ou FALHA.
 - **Banco antigo:** rode `sql/migration_add_team_members.sql` e `sql/migration_add_dono_role.sql`

@@ -2,7 +2,7 @@
 // quando o servidor diz que a sessão venceu.
 import { toast } from 'sonner';
 
-// endereço da API: vem da variável VITE_API_BASE (na Vercel é a URL do Railway).
+// endereço da API: vem da variável VITE_API_BASE (em produção é /api, servido pelo Caddy).
 // Sem ela, usa o backend local.
 export const API_BASE = import.meta.env?.VITE_API_BASE ?? 'http://localhost:3001';
 
