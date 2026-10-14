@@ -21,8 +21,9 @@ async function abrir(role: string, rotas: Parameters<typeof mockApi>[0] = {}) {
   return api;
 }
 
-// os rótulos do formulário não estão ligados aos campos, então os campos são achados pelo atributo name
-const campo = (nome: string) => document.querySelector(`[name="${nome}"]`) as HTMLInputElement;
+// campos do formulário, achados pelo rótulo (como uma pessoa, ou um leitor de tela, encontraria)
+const ROTULOS: Record<string, RegExp> = { name: /Nome Completo/, email: /Email Corporativo/, password: /Senha/, role: /Cargo/ };
+const campo = (nome: string) => screen.getByLabelText(ROTULOS[nome]) as HTMLInputElement;
 // linha da Maria na tabela (a versão de computador)
 const linhaMaria = () => screen.getAllByText('Maria Souza')[0].closest('tr') as HTMLElement;
 
@@ -104,7 +105,32 @@ describe('edição, status e remoção', () => {
     expect(api.foi('PUT /users/u2')[0].body).toEqual({ status: 'Inativo' });
   });
 
-  test('editar abre o formulário com os dados e salva', async () => {
+  test('editar sem digitar senha mantém a senha atual (não envia o campo)', async () => {
+    const api = await abrir('Administrativo', {
+      'PUT /users/u2': { body: { user: { ...maria, role: 'Visualizador' } } },
+      'POST /audit': { body: { entry: { id: 'a' } } },
+    });
+    const u = userEvent.setup();
+    await u.click(within(linhaMaria()).getByTitle('Editar'));
+    expect(campo('name')).toHaveValue('Maria Souza');
+    expect(campo('password')).toHaveValue('');
+    expect(campo('password')).not.toBeRequired();
+    await u.selectOptions(campo('role'), 'Visualizador');
+    await u.click(screen.getByRole('button', { name: 'Salvar Alterações' }));
+    await waitFor(() => expect(api.foi('PUT /users/u2')).toHaveLength(1));
+    const enviado = api.foi('PUT /users/u2')[0].body as Record<string, unknown>;
+    expect(enviado).toMatchObject({ role: 'Visualizador', name: 'Maria Souza' });
+    expect(enviado).not.toHaveProperty('password');
+  });
+
+  test('no cadastro a senha continua obrigatória', async () => {
+    await abrir('Administrativo');
+    const u = userEvent.setup();
+    await u.click(screen.getByRole('button', { name: /Novo Usuário/ }));
+    expect(campo('password')).toBeRequired();
+  });
+
+  test('editar com senha nova envia a senha', async () => {
     const api = await abrir('Administrativo', {
       'PUT /users/u2': { body: { user: { ...maria, role: 'Visualizador' } } },
       'POST /audit': { body: { entry: { id: 'a' } } },
@@ -113,7 +139,7 @@ describe('edição, status e remoção', () => {
     await u.click(within(linhaMaria()).getByTitle('Editar'));
     expect(campo('name')).toHaveValue('Maria Souza');
     await u.selectOptions(campo('role'), 'Visualizador');
-    await u.type(campo('password'), 'nova-senha-123'); // a tela exige senha também na edição
+    await u.type(campo('password'), 'nova-senha-123');
     await u.click(screen.getByRole('button', { name: 'Salvar Alterações' }));
     await waitFor(() => expect(api.foi('PUT /users/u2')).toHaveLength(1));
     expect(api.foi('PUT /users/u2')[0].body).toMatchObject({ role: 'Visualizador', name: 'Maria Souza', password: 'nova-senha-123' });
