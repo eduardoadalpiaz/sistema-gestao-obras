@@ -16,6 +16,6 @@ RUN apk add --no-cache libcap \
  && addgroup -S -g 10001 app && adduser -S -u 10001 -G app app \
  && setcap cap_net_bind_service=+ep /usr/bin/caddy \
  && mkdir -p /data /config && chown -R app:app /data /config
-COPY --chown=app:app --from=build /app/dist /srv
-COPY --chown=app:app Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/dist /srv
+COPY Caddyfile /etc/caddy/Caddyfile
 USER app
