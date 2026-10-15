@@ -4,7 +4,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 # instala só as dependências de produção
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 COPY src ./src
 COPY sql ./sql
 # roda sem ser root
