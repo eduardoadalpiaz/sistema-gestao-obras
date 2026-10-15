@@ -1,0 +1,9 @@
+# Prometheus: a cada 15s lê as métricas da API (rede interna do Docker, fora da internet).
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:3001"]
