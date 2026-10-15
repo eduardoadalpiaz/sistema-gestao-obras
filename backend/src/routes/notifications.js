@@ -16,6 +16,23 @@ router.post("/", asyncHandler(async (req, res) => {
   res.json({ notification });
 }));
 
+// verifica os documentos que vencem em até 30 dias (ou já vencidos) e cria um aviso para cada um
+router.post("/vencimentos", asyncHandler(async (_req, res) => {
+  const { rows } = await query(
+    `SELECT obra_id, title, to_char(expiry_date, 'DD/MM/YYYY') AS validade
+       FROM documentos_obra
+      WHERE expiry_date IS NOT NULL AND expiry_date <= CURRENT_DATE + 30`
+  );
+  for (const doc of rows) {
+    await insertRow("notificacoes", {
+      type: "warning",
+      message: `Documento "${doc.title}" vence em ${doc.validade}`,
+      obraId: doc.obra_id,
+    });
+  }
+  res.json({ criadas: rows.length });
+}));
+
 // essa rota precisa vir antes da /:id, senão o Express entenderia "mark-all-read" como um id
 router.put("/mark-all-read", asyncHandler(async (_req, res) => {
   await query("UPDATE notificacoes SET read = TRUE WHERE read = FALSE");
