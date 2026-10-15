@@ -13,7 +13,15 @@ const { ROLES } = require("../config");
 const router = express.Router();
 router.use(requireRole("Administrativo"));
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// valida o e-mail sem expressão regular (evita lentidão em textos maliciosos)
+function emailValido(email) {
+  if (/\s/.test(email)) return false;
+  const arroba = email.indexOf("@");
+  if (arroba < 1 || arroba !== email.lastIndexOf("@")) return false;
+  const dominio = email.slice(arroba + 1);
+  const ponto = dominio.lastIndexOf(".");
+  return ponto > 0 && ponto < dominio.length - 1;
+}
 const STATUSES = ["Ativo", "Inativo"];
 const bad = (res, message) => res.status(400).json({ message });
 
@@ -27,7 +35,7 @@ function readUserFields(body) {
   }
   if (body.email !== undefined) {
     const email = String(body.email).trim().toLowerCase();
-    if (!EMAIL.test(email) || email.length > 150) return { error: "E-mail inválido." };
+    if (!emailValido(email) || email.length > 150) return { error: "E-mail inválido." };
     data.email = email;
   }
   if (body.phone !== undefined) {
@@ -109,3 +117,5 @@ router.delete("/:id", asyncHandler(async (req, res) => {
 }));
 
 module.exports = router;
+
+module.exports.emailValido = emailValido;

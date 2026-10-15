@@ -14,8 +14,8 @@ router.get("/", requireRole("TI", "Dono"), asyncHandler(async (req, res) => {
     const audit = await selectAll("historico_alteracoes", "created_at", false);
     return res.json({ audit });
   }
-  const limit = Math.min(Math.max(parseInt(pageSize, 10) || 50, 1), 200);
-  const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+  const limit = Math.min(Math.max(Number.parseInt(pageSize, 10) || 50, 1), 200);
+  const pageNumber = Math.max(Number.parseInt(page, 10) || 1, 1);
   const offset = (pageNumber - 1) * limit;
   const [audit, total] = await Promise.all([
     selectAll("historico_alteracoes", "created_at", false, { limit, offset }),
