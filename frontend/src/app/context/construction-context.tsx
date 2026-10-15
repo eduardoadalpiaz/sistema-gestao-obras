@@ -295,6 +295,14 @@ const ConstructionManagementContext = createContext<ConstructionManagementContex
 
 // Provider
 
+// guarda só os campos conhecidos, como texto (sem senha, código ou campos extras)
+function serializarUsuario(u: TeamMember): string {
+  return JSON.stringify({
+    id: String(u.id), name: String(u.name), email: String(u.email), phone: String(u.phone ?? ''),
+    role: String(u.role), status: String(u.status), verified: Boolean(u.verified), createdAt: String(u.createdAt),
+  });
+}
+
 export function ConstructionManagementProvider({ children }: { children: ReactNode }) {
 
   const [isInitializing,    setIsInitializing]    = useState(true);
@@ -307,7 +315,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   const [activeUser, setActiveUser] = useState<TeamMember | null>(() => {
     try {
       const stored = localStorage.getItem('dp_current_user');
-      return stored && getToken() ? JSON.parse(stored) : null;
+      return stored && getToken() ? { password: '', ...JSON.parse(stored) } : null;
     } catch { return null; }
   });
 
@@ -333,8 +341,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
 
   useEffect(() => {
     if (activeUser) {
-      const { verificationCode: _codigo, ...semCodigo } = activeUser;
-      localStorage.setItem('dp_current_user', JSON.stringify(semCodigo));
+      localStorage.setItem('dp_current_user', serializarUsuario(activeUser));
     } else {
       localStorage.removeItem('dp_current_user');
     }
