@@ -2,7 +2,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 COPY . .
 # a API fica no mesmo endereço do site, sob /api (o Caddy encaminha)
 ARG VITE_API_BASE=/api
