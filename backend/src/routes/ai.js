@@ -4,6 +4,7 @@ const express = require("express");
 const { query } = require("../db");
 const { mapRow, mapRows } = require("../utils/caseConvert");
 const { asyncHandler } = require("../middleware/asyncHandler");
+const { paraLog } = require("../utils/log");
 
 const router = express.Router();
 
@@ -92,13 +93,13 @@ Etapas atrasadas: ${etapasAtrasadas.length}${etapasAtrasadas.length ? " (" + eta
       }
     );
   } catch (err) {
-    console.error("[ai] Falha ao chamar o Gemini:", err.name, err.message);
+    console.error("[ai] Falha ao chamar o Gemini:", paraLog(err.name), paraLog(err.message));
     return res.status(502).json({ message: "Não foi possível gerar a análise agora. Tente novamente em instantes." });
   }
 
   if (!geminiRes.ok) {
     const errText = await geminiRes.text().catch(() => "");
-    console.error("[ai] Erro na API do Gemini:", geminiRes.status, model, errText);
+    console.error("[ai] Erro na API do Gemini:", geminiRes.status, paraLog(model), paraLog(errText));
     const message = geminiRes.status === 429
       ? "Limite de uso da IA atingido por agora. Tente novamente em alguns minutos."
       : "Não foi possível gerar a análise agora. Tente novamente em instantes.";
