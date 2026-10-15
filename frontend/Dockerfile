@@ -11,5 +11,11 @@ RUN npm run build
 
 # Etapa 2: Caddy serve o site e encaminha /api para o back-end (com HTTPS automático)
 FROM caddy:2-alpine
-COPY --from=build /app/dist /srv
-COPY Caddyfile /etc/caddy/Caddyfile
+# usuário comum (não root) roda o Caddy; a capability deixa ele abrir as portas 80 e 443
+RUN apk add --no-cache libcap \
+ && addgroup -S -g 10001 app && adduser -S -u 10001 -G app app \
+ && setcap cap_net_bind_service=+ep /usr/bin/caddy \
+ && mkdir -p /data /config && chown -R app:app /data /config
+COPY --chown=app:app --from=build /app/dist /srv
+COPY --chown=app:app Caddyfile /etc/caddy/Caddyfile
+USER app
