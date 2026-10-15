@@ -240,7 +240,7 @@ export function Projects() {
     setProjectForm(prev => ({ ...prev, [name]: value }));
     if (name === 'cep') {
       const digits = value.replace(/\D/g, '');
-      if (digits.length === 8) lookupPostalCode(digits);
+      if (digits.length === 8) void lookupPostalCode(digits);
     }
   };
 
