@@ -65,4 +65,8 @@ describe("políticas de segurança (configuração)", () => {
     assert.match(dockerfile, /setcap cap_net_bind_service=\+ep \/usr\/bin\/caddy/);
     assert.match(dockerfile, /chown -R \S+ \/data \/config/);
   });
+
+  it("os arquivos copiados para o Caddy continuam do root (o usuário comum só lê)", () => {
+    assert.doesNotMatch(ler("frontend/Dockerfile"), /^COPY\s+--chown/m);
+  });
 });
