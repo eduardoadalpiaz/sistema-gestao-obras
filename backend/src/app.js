@@ -11,6 +11,7 @@ const { errorHandler } = require("./middleware/errorHandler");
 const { authenticate } = require("./middleware/auth");
 const { rateLimit } = require("./middleware/rateLimit");
 const { subscribe, notifyChange } = require("./realtime");
+const { metricsMiddleware, metricsHandler } = require("./metrics");
 
 const authRoutes          = require("./routes/auth");
 const usersRoutes         = require("./routes/users");
@@ -38,6 +39,9 @@ app.use((_req, res, next) => {
   });
   next();
 });
+
+// conta e mede todas as requisições (alimenta o /metrics)
+app.use(metricsMiddleware);
 
 // Comprime as respostas: o /data pode ficar bem grande quando tem muita obra,
 // gasto e documento.
@@ -83,6 +87,9 @@ app.get("/health", async (_req, res) => {
     res.status(503).json({ status: "degraded", database: "unreachable" });
   }
 });
+
+// Métricas no formato do Prometheus (no servidor só a rede interna enxerga: o Caddy bloqueia /api/metrics)
+app.get("/metrics", asyncHandler(metricsHandler));
 
 // Carga inicial: devolve tudo de uma vez, do jeito que o front espera.
 app.get("/data", authenticate, asyncHandler(async (req, res) => {
