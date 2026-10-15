@@ -40,4 +40,16 @@ describe("políticas de segurança (configuração)", () => {
   it("os testes do back não têm senha fixa escrita no código", () => {
     assert.doesNotMatch(ler("backend/tests/helpers.js"), /PASSWORD\s*=\s*"[^"]*"\s*;/);
   });
+
+  it("no CSS do front, todos os @import vêm antes do primeiro @source", () => {
+    const linhas = ler("frontend/src/styles/tailwind.css").split("\n");
+    const primeiroSource = linhas.findIndex((l) => l.startsWith("@source"));
+    const ultimoImport = linhas.reduce((n, l, i) => (l.startsWith("@import") ? i : n), -1);
+    assert.ok(primeiroSource >= 0 && ultimoImport >= 0);
+    assert.ok(ultimoImport < primeiroSource, "@import depois de @source é posição inválida");
+  });
+
+  it("o setup dos testes do front rejeita a promessa sempre com um Error", () => {
+    assert.doesNotMatch(ler("frontend/tests/setup.ts"), /reject\(leitor\.error\)/);
+  });
 });
