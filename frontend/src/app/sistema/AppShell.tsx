@@ -163,7 +163,7 @@ export function AppShell() {
           <div className="w-64 h-full">
             <NavigationSidebar onClose={() => setIsMobileSidebarOpen(false)} />
           </div>
-          <div className="flex-1 bg-black/50" onClick={() => setIsMobileSidebarOpen(false)} />
+          <div className="flex-1 bg-black/50" role="presentation" onClick={() => setIsMobileSidebarOpen(false)} onKeyDown={e => { if (e.key === 'Escape') setIsMobileSidebarOpen(false); }} />
         </div>
       )}
 
