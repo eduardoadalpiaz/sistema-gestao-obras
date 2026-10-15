@@ -21,7 +21,7 @@ const app = require("../src/app");
 const { pool } = require("../src/db");
 const { JWT_SECRET } = require("../src/config");
 
-const PASSWORD = "senha-forte-123";
+const PASSWORD = "Aa1-" + require("crypto").randomBytes(12).toString("hex"); // senha de teste gerada a cada execução
 const HASH = bcrypt.hashSync(PASSWORD, 4); // custo baixo só pra o teste ficar rápido
 let counter = 0;
 
