@@ -209,6 +209,19 @@ describe('histórico de alterações', () => {
     expect(screen.getByText('Novo')).toBeInTheDocument();
   });
 
+  test('a linha do histórico abre e fecha pelo teclado (Enter)', async () => {
+    logarComo('TI', { audit: registros });
+    renderTela('/historico');
+    const u = userEvent.setup();
+    await screen.findByText('Histórico de Alterações');
+    const linha = screen.getByRole('button', { name: /campo: client/ });
+    expect(linha).toHaveAttribute('aria-expanded', 'false');
+    linha.focus();
+    await u.keyboard('{Enter}');
+    expect(screen.getByText('Antigo')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { expanded: true })).toHaveLength(1);
+  });
+
   test('sem registros, explica que eles aparecem conforme o uso', async () => {
     logarComo('Dono', { audit: [] });
     renderTela('/historico');
