@@ -33,9 +33,8 @@ describe("aviso de documento vencendo", () => {
     assert.equal(rows[0].type, "warning");
     assert.match(rows[0].message, /Alvará da prefeitura/);
   });
-});
 
-test("chamar de novo não duplica o aviso", async () => {
+  test("chamar de novo não duplica o aviso", async () => {
     const r = await api("POST", "/notifications/vencimentos", { token });
 
     assert.equal(r.status, 200);
@@ -43,3 +42,4 @@ test("chamar de novo não duplica o aviso", async () => {
     const { rows } = await h.pool.query("SELECT id FROM notificacoes WHERE obra_id = $1", [obra.id]);
     assert.equal(rows.length, 1);
   });
+});
