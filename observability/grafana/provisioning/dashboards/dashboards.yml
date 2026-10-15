@@ -1,0 +1,7 @@
+# Carrega os painéis da pasta /var/lib/grafana/dashboards.
+apiVersion: 1
+providers:
+  - name: obras
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards
