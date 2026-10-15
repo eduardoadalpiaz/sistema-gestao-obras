@@ -7,7 +7,7 @@ import {
   useCallback, useRef, ReactNode,
 } from 'react';
 import { toast } from 'sonner';
-import { api, API_BASE, ApiError, getToken, setToken, clearSession, readApiMessage, SESSION_EXPIRED_EVENT } from '../utils/api';
+import { api, API_BASE, ApiError, getToken, setToken, getStoredUser, setStoredUser, clearSession, readApiMessage, SESSION_EXPIRED_EVENT } from '../utils/api';
 
 // Tipos
 
@@ -296,11 +296,11 @@ const ConstructionManagementContext = createContext<ConstructionManagementContex
 // Provider
 
 // guarda só os campos conhecidos, como texto (sem senha, código ou campos extras)
-function serializarUsuario(u: TeamMember): string {
-  return JSON.stringify({
+function usuarioParaGuardar(u: TeamMember): Record<string, string | boolean> {
+  return {
     id: String(u.id), name: String(u.name), email: String(u.email), phone: String(u.phone ?? ''),
     role: String(u.role), status: String(u.status), verified: Boolean(u.verified), createdAt: String(u.createdAt),
-  });
+  };
 }
 
 export function ConstructionManagementProvider({ children }: { children: ReactNode }) {
@@ -314,7 +314,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // (só vale se o token de login também estiver guardado)
   const [activeUser, setActiveUser] = useState<TeamMember | null>(() => {
     try {
-      const stored = localStorage.getItem('dp_current_user');
+      const stored = getStoredUser();
       return stored && getToken() ? { password: '', ...JSON.parse(stored) } : null;
     } catch { return null; }
   });
@@ -340,11 +340,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   useEffect(() => { scheduleStagesRef.current = scheduleStages; }, [scheduleStages]);
 
   useEffect(() => {
-    if (activeUser) {
-      localStorage.setItem('dp_current_user', serializarUsuario(activeUser));
-    } else {
-      localStorage.removeItem('dp_current_user');
-    }
+    setStoredUser(activeUser ? usuarioParaGuardar(activeUser) : null);
   }, [activeUser]);
 
   // Carga inicial vinda da API
