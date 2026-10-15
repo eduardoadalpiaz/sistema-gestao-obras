@@ -1,6 +1,17 @@
 # {$DOMAIN} vem do .env (ex.: vm-obras-eduardo.northcentralus.cloudapp.azure.com).
 # O Caddy pega o certificado HTTPS sozinho.
 {$DOMAIN} {
+	# /metrics é só para o Prometheus (rede interna): fora do servidor dá 404
+	@metrics path /api/metrics /api/metrics/*
+	handle @metrics {
+		respond 404
+	}
+
+	# Grafana (painéis), protegido por login
+	handle /grafana* {
+		reverse_proxy grafana:3000
+	}
+
 	# /api/* vai para o back-end (sem o prefixo /api)
 	handle_path /api/* {
 		# flush_interval -1 mantém o tempo real (SSE) sem atraso
