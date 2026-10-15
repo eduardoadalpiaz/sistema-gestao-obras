@@ -141,15 +141,4 @@ CREATE INDEX idx_notificacoes_obra_id      ON notificacoes(obra_id);
 CREATE INDEX idx_notificacoes_read         ON notificacoes(read);
 CREATE INDEX idx_historico_created_at      ON historico_alteracoes(created_at DESC);
 
--- Usuário administrador inicial (senha admin123, troque depois do primeiro login)
--- Hash feito com bcrypt (10 rounds). Pra gerar o seu: node -e "console.log(require('bcryptjs').hashSync('admin123',10))"
-INSERT INTO usuarios (name, email, password_hash, phone, role, status, verified)
-VALUES (
-  'Administrador',
-  'admin@obras.com',
-  '$2a$10$Wu1ao1RW0v4oGfRAG74I5.xYZiPs1GEgJLOKQ5oWlyD1iXNWuzH6y', -- senha: admin123 (troque no primeiro login)
-  '(00) 00000-0000',
-  'Administrativo',
-  'Ativo',
-  TRUE
-);
+-- O primeiro administrador não vem fixo aqui: crie com `node scripts/criar-admin.js` (veja o README).
