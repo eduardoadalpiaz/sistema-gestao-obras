@@ -20,10 +20,14 @@ psql "$DATABASE_URL" -f sql/schema.sql
 
 Isso cria as tabelas `usuarios`, `obras`, `etapas`, `despesas_obra`,
 `documentos_obra`, `notificacoes`, `historico_alteracoes` (com FKs, CASCADE e
-índices) e insere um usuário administrador inicial:
+índices). Depois, crie o primeiro administrador com uma senha de 12 ou mais caracteres,
+escolhida por você (ela não fica guardada em nenhum arquivo do projeto):
 
-- **email:** `admin@obras.com`
-- **senha:** `admin123` (troque assim que logar pela primeira vez)
+```bash
+ADMIN_EMAIL=voce@empresa.com ADMIN_PASSWORD='sua-senha-longa-aqui' node scripts/criar-admin.js
+```
+
+O comando só cria o administrador se o banco ainda não tiver nenhum usuário.
 
 ## 2. Configurar variáveis de ambiente
 
@@ -149,7 +153,7 @@ uma indisponibilidade momentânea.
 - **Variáveis importantes:** `JWT_SECRET` (longo e aleatório; sem ele o servidor usa um temporário
   e os logins caem a cada reinício) e `CORS_ORIGIN` (endereço do front). Para gerar o segredo:
   `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
-- **Troque a senha do `admin123`** no primeiro acesso (tela Usuários → editar).
+- **Primeiro administrador:** crie com `node scripts/criar-admin.js` (veja a seção 1); não existe mais senha padrão.
 - **Conferir o sistema publicado:** `./verificar-producao.sh https://seu-dominio https://seu-dominio/api`
   (na raiz do projeto) faz as consultas de segurança (login obrigatório, CORS, cabeçalhos,
   senha padrão e segredos no código do front) e mostra OK, ATENÇÃO ou FALHA.
