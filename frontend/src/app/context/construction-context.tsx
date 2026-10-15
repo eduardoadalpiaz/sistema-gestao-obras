@@ -409,7 +409,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
         if (!cancelled) setIsInitializing(false);
       }
     };
-    load();
+    void load();
     return () => { cancelled = true; };
   }, [activeUser?.id, loadVersion]);
 
@@ -466,17 +466,17 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
             buffer += decoder.decode(value, { stream: true });
             const parts = buffer.split('\n\n');
             buffer = parts.pop() ?? '';
-            if (parts.some(p => p.includes('event: changed'))) refresh();
+            if (parts.some(p => p.includes('event: changed'))) void refresh();
           }
         } catch { if (cancelled) return; }
         await new Promise(r => setTimeout(r, wait));
         wait = Math.min(wait * 2, 30000);
       }
     };
-    listen();
+    void listen();
 
-    const timer = setInterval(refresh, 60000);
-    const onVisible = () => { if (!document.hidden) refresh(); };
+    const timer = setInterval(() => void refresh(), 60000);
+    const onVisible = () => { if (!document.hidden) void refresh(); };
     document.addEventListener('visibilitychange', onVisible);
     return () => {
       cancelled = true;

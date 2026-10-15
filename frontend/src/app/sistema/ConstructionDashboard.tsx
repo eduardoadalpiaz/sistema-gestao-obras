@@ -266,7 +266,10 @@ export function ConstructionDashboard() {
             {systemNotifications.slice(0, 8).map(notification => (
               <div
                 key={notification.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => handleNotificationClick(notification)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNotificationClick(notification); } }}
                 className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors group ${
                   notification.read
                     ? 'bg-gray-50 opacity-60 hover:opacity-80'

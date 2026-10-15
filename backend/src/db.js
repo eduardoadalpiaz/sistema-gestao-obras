@@ -8,7 +8,7 @@ types.setTypeParser(1082, (value) => value);
 // Colunas NUMERIC (dinheiro, área...) chegam como texto, tipo "40000.00". Com
 // isso o front concatenava em vez de somar (0 + "40000.00" dava "040000.00"),
 // então convertemos pra número. (1700 = NUMERIC)
-types.setTypeParser(1700, (value) => (value === null ? null : parseFloat(value)));
+types.setTypeParser(1700, (value) => (value === null ? null : Number.parseFloat(value)));
 
 // Tamanho do pool e timeouts podem ser ajustados por variável de ambiente.
 const pool = new Pool({

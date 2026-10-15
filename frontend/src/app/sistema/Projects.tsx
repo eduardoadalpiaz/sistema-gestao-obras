@@ -526,16 +526,16 @@ export function Projects() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Identificação</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Nome da Obra *</label>
-                    <input name="name" value={projectForm.name} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-1" className="block text-sm font-semibold text-gray-700 mb-1">Nome da Obra *</label>
+                    <input id="projects-campo-1" name="name" value={projectForm.name} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Cliente *</label>
-                    <input name="client" value={projectForm.client} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-2" className="block text-sm font-semibold text-gray-700 mb-1">Cliente *</label>
+                    <input id="projects-campo-2" name="client" value={projectForm.client} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Responsável Técnico *</label>
-                    <select name="responsibleId" value={projectForm.responsibleId} onChange={handleFieldChange} required className={baseInputClass + ' bg-white'}>
+                    <label htmlFor="projects-campo-3" className="block text-sm font-semibold text-gray-700 mb-1">Responsável Técnico *</label>
+                    <select id="projects-campo-3" name="responsibleId" value={projectForm.responsibleId} onChange={handleFieldChange} required className={baseInputClass + ' bg-white'}>
                       <option value="">Selecione...</option>
                       {teamMembers
                         .filter(m => m.status === 'Ativo' && (m.role === 'Engenheiro' || m.role === 'Mestre de Obras' || m.role === 'Administrativo'))
@@ -545,8 +545,8 @@ export function Projects() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
-                    <select name="status" value={projectForm.status} onChange={handleFieldChange} className={baseInputClass + ' bg-white'}>
+                    <label htmlFor="projects-campo-4" className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                    <select id="projects-campo-4" name="status" value={projectForm.status} onChange={handleFieldChange} className={baseInputClass + ' bg-white'}>
                       <option>Em andamento</option>
                       <option>Concluída</option>
                       <option>Paralisada</option>
@@ -560,9 +560,9 @@ export function Projects() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Endereço</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">CEP *</label>
+                    <label htmlFor="projects-campo-5" className="block text-sm font-semibold text-gray-700 mb-1">CEP *</label>
                     <div className="relative">
-                      <input name="cep" value={projectForm.cep} onChange={handleFieldChange} required placeholder="00000-000" className={baseInputClass + ' pr-8'} />
+                      <input id="projects-campo-5" name="cep" value={projectForm.cep} onChange={handleFieldChange} required placeholder="00000-000" className={baseInputClass + ' pr-8'} />
                       {isLookingUpPostalCode && (
                         <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[#E8821A]" />
                       )}
@@ -570,24 +570,24 @@ export function Projects() {
                     {postalCodeError && <p className="text-red-500 text-xs mt-1">{postalCodeError}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Rua *</label>
-                    <input name="street" value={projectForm.street} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-6" className="block text-sm font-semibold text-gray-700 mb-1">Rua *</label>
+                    <input id="projects-campo-6" name="street" value={projectForm.street} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="font-normal text-gray-400">(opcional)</span></label>
-                    <input name="streetNumber" value={projectForm.streetNumber ?? ''} onChange={handleFieldChange} maxLength={20} placeholder="Ex.: 123 ou s/n" className={baseInputClass} />
+                    <label htmlFor="projects-campo-7" className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="font-normal text-gray-400">(opcional)</span></label>
+                    <input id="projects-campo-7" name="streetNumber" value={projectForm.streetNumber ?? ''} onChange={handleFieldChange} maxLength={20} placeholder="Ex.: 123 ou s/n" className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Bairro *</label>
-                    <input name="neighborhood" value={projectForm.neighborhood} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-8" className="block text-sm font-semibold text-gray-700 mb-1">Bairro *</label>
+                    <input id="projects-campo-8" name="neighborhood" value={projectForm.neighborhood} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Cidade *</label>
-                    <input name="city" value={projectForm.city} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-9" className="block text-sm font-semibold text-gray-700 mb-1">Cidade *</label>
+                    <input id="projects-campo-9" name="city" value={projectForm.city} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Estado *</label>
-                    <input name="state" value={projectForm.state} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-10" className="block text-sm font-semibold text-gray-700 mb-1">Estado *</label>
+                    <input id="projects-campo-10" name="state" value={projectForm.state} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                 </div>
               </div>
@@ -597,15 +597,15 @@ export function Projects() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Classificação da Obra</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Obra</label>
-                    <select name="tipo" value={projectForm.tipo ?? ''} onChange={handleFieldChange} className={highlightedInputClass + ' bg-white'}>
+                    <label htmlFor="projects-campo-11" className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Obra</label>
+                    <select id="projects-campo-11" name="tipo" value={projectForm.tipo ?? ''} onChange={handleFieldChange} className={highlightedInputClass + ' bg-white'}>
                       <option value="">Selecione...</option>
                       {OBRA_TIPOS.map(t => <option key={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Nível de Complexidade</label>
-                    <select name="complexidade" value={projectForm.complexidade ?? ''} onChange={handleFieldChange} className={highlightedInputClass + ' bg-white'}>
+                    <label htmlFor="projects-campo-12" className="block text-sm font-semibold text-gray-700 mb-1">Nível de Complexidade</label>
+                    <select id="projects-campo-12" name="complexidade" value={projectForm.complexidade ?? ''} onChange={handleFieldChange} className={highlightedInputClass + ' bg-white'}>
                       <option value="">Selecione...</option>
                       {OBRA_COMPLEXIDADES.map(c => <option key={c}>{c}</option>)}
                     </select>
@@ -621,29 +621,29 @@ export function Projects() {
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                    <label htmlFor="projects-campo-13" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <Ruler size={13} className="text-[#E8821A]" /> Área (m²)
                     </label>
-                    <input type="number" name="area" value={projectForm.area ?? ''} onChange={handleFieldChange}
+                    <input id="projects-campo-13" type="number" name="area" value={projectForm.area ?? ''} onChange={handleFieldChange}
                       min={0} placeholder="Ex: 1500" className={highlightedInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                    <label htmlFor="projects-campo-14" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <Layers size={13} className="text-[#E8821A]" /> Pavimentos
                     </label>
-                    <input type="number" name="floors" value={projectForm.floors ?? ''} onChange={handleFieldChange}
+                    <input id="projects-campo-14" type="number" name="floors" value={projectForm.floors ?? ''} onChange={handleFieldChange}
                       min={1} placeholder="Ex: 4" className={highlightedInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Unidades</label>
-                    <input type="number" name="units" value={projectForm.units ?? ''} onChange={handleFieldChange}
+                    <label htmlFor="projects-campo-15" className="block text-sm font-semibold text-gray-700 mb-1">Unidades</label>
+                    <input id="projects-campo-15" type="number" name="units" value={projectForm.units ?? ''} onChange={handleFieldChange}
                       min={1} placeholder="Ex: 24" className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                    <label htmlFor="projects-campo-16" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <Users size={13} className="text-[#E8821A]" /> Equipe
                     </label>
-                    <input type="number" name="teamSize" value={projectForm.teamSize ?? ''} onChange={handleFieldChange}
+                    <input id="projects-campo-16" type="number" name="teamSize" value={projectForm.teamSize ?? ''} onChange={handleFieldChange}
                       min={1} placeholder="Ex: 12" className={highlightedInputClass} />
                   </div>
                 </div>
@@ -651,7 +651,7 @@ export function Projects() {
                 {/* Nomes da equipe (opcional) */}
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-gray-700 flex items-center gap-1">
+                    <label htmlFor="projects-campo-17" className="block text-sm font-semibold text-gray-700 flex items-center gap-1">
                       <Users size={13} className="text-[#E8821A]" /> Nomes da equipe
                       <span className="text-gray-400 font-normal text-xs ml-1">(opcional)</span>
                     </label>
@@ -666,7 +666,7 @@ export function Projects() {
                     <div className="space-y-2">
                       {(projectForm.teamMembers ?? []).map((memberName, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <input type="text" value={memberName}
+                          <input id="projects-campo-17" type="text" value={memberName}
                             onChange={e => updateTeamMemberName(index, e.target.value)}
                             placeholder={`Nome do integrante ${index + 1}`} className={baseInputClass} />
                           <button type="button" onClick={() => removeTeamMemberName(index)}
@@ -685,12 +685,12 @@ export function Projects() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Prazo</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Data de Início *</label>
-                    <input type="date" name="startDate" value={projectForm.startDate} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-18" className="block text-sm font-semibold text-gray-700 mb-1">Data de Início *</label>
+                    <input id="projects-campo-18" type="date" name="startDate" value={projectForm.startDate} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Término *</label>
-                    <input type="date" name="endDate" value={projectForm.endDate} onChange={handleFieldChange} required className={baseInputClass} />
+                    <label htmlFor="projects-campo-19" className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Término *</label>
+                    <input id="projects-campo-19" type="date" name="endDate" value={projectForm.endDate} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                 </div>
 
@@ -749,17 +749,17 @@ export function Projects() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Financeiro</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                    <label htmlFor="projects-campo-20" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <DollarSign size={13} className="text-[#E8821A]" /> Custo Estimado pela Empresa (R$)
                     </label>
-                    <input type="number" name="estimatedCost" value={projectForm.estimatedCost ?? ''} onChange={handleFieldChange}
+                    <input id="projects-campo-20" type="number" name="estimatedCost" value={projectForm.estimatedCost ?? ''} onChange={handleFieldChange}
                       min={0} placeholder="Ex: 500000" className={highlightedInputClass} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                    <label htmlFor="projects-campo-21" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                       <DollarSign size={13} className="text-gray-400" /> Valor Disponível do Cliente (R$)
                     </label>
-                    <input type="number" name="clientBudget" value={projectForm.clientBudget ?? ''} onChange={handleFieldChange}
+                    <input id="projects-campo-21" type="number" name="clientBudget" value={projectForm.clientBudget ?? ''} onChange={handleFieldChange}
                       min={0} placeholder="Ex: 450000" className={baseInputClass} />
                   </div>
                 </div>

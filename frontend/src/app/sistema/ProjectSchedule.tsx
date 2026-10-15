@@ -193,8 +193,8 @@ export function ProjectSchedule() {
       {/* Seletor de obra */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="flex-1">
-          <label className="block text-xs font-semibold text-gray-500 mb-1.5">Selecione a Obra</label>
-          <select
+          <label htmlFor="projectschedule-campo-1" className="block text-xs font-semibold text-gray-500 mb-1.5">Selecione a Obra</label>
+          <select id="projectschedule-campo-1"
             value={selectedProjectId}
             onChange={e => setSelectedProjectId(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500 transition bg-white"
@@ -364,8 +364,8 @@ export function ProjectSchedule() {
 
             <form onSubmit={handleStageFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Nome da Etapa *</label>
-                <input
+                <label htmlFor="projectschedule-campo-2" className="block text-sm font-semibold text-gray-700 mb-1">Nome da Etapa *</label>
+                <input id="projectschedule-campo-2"
                   name="name" value={stageForm.name} onChange={handleStageFormChange} required
                   placeholder="Ex: Fundação"
                   className={sharedInputClass}
@@ -374,30 +374,30 @@ export function ProjectSchedule() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Início *</label>
-                  <input type="date" name="plannedStart" value={stageForm.plannedStart} onChange={handleStageFormChange} required className={sharedInputClass} />
+                  <label htmlFor="projectschedule-campo-3" className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Início *</label>
+                  <input id="projectschedule-campo-3" type="date" name="plannedStart" value={stageForm.plannedStart} onChange={handleStageFormChange} required className={sharedInputClass} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Término *</label>
-                  <input type="date" name="plannedEnd" value={stageForm.plannedEnd} onChange={handleStageFormChange} required className={sharedInputClass} />
+                  <label htmlFor="projectschedule-campo-4" className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Término *</label>
+                  <input id="projectschedule-campo-4" type="date" name="plannedEnd" value={stageForm.plannedEnd} onChange={handleStageFormChange} required className={sharedInputClass} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Data de Conclusão Real</label>
-                  <input type="date" name="actualEnd" value={stageForm.actualEnd} onChange={handleStageFormChange} className={sharedInputClass} />
+                  <label htmlFor="projectschedule-campo-5" className="block text-sm font-semibold text-gray-700 mb-1">Data de Conclusão Real</label>
+                  <input id="projectschedule-campo-5" type="date" name="actualEnd" value={stageForm.actualEnd} onChange={handleStageFormChange} className={sharedInputClass} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
-                  <select name="status" value={stageForm.status} onChange={handleStageFormChange} className={sharedInputClass + ' bg-white'}>
+                  <label htmlFor="projectschedule-campo-6" className="block text-sm font-semibold text-gray-700 mb-1">Status</label>
+                  <select id="projectschedule-campo-6" name="status" value={stageForm.status} onChange={handleStageFormChange} className={sharedInputClass + ' bg-white'}>
                     {STAGE_STATUS_OPTIONS.map(opt => <option key={opt}>{opt}</option>)}
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                <label htmlFor="projectschedule-campo-7" className="block text-sm font-semibold text-gray-700 mb-1">
                   Progresso (%) — {stageForm.progress}%
                 </label>
-                <input
+                <input id="projectschedule-campo-7"
                   type="range" name="progress" min={0} max={100}
                   value={stageForm.progress} onChange={handleStageFormChange}
                   className="w-full accent-blue-600"
@@ -405,8 +405,8 @@ export function ProjectSchedule() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Responsável *</label>
-                <select name="responsibleId" value={stageForm.responsibleId} onChange={handleStageFormChange} required className={sharedInputClass + ' bg-white'}>
+                <label htmlFor="projectschedule-campo-8" className="block text-sm font-semibold text-gray-700 mb-1">Responsável *</label>
+                <select id="projectschedule-campo-8" name="responsibleId" value={stageForm.responsibleId} onChange={handleStageFormChange} required className={sharedInputClass + ' bg-white'}>
                   <option value="">Selecione...</option>
                   {teamMembers
                     .filter(m => m.status === 'Ativo')
@@ -417,8 +417,8 @@ export function ProjectSchedule() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Observações</label>
-                <textarea
+                <label htmlFor="projectschedule-campo-9" className="block text-sm font-semibold text-gray-700 mb-1">Observações</label>
+                <textarea id="projectschedule-campo-9"
                   name="notes" value={stageForm.notes} onChange={handleStageFormChange}
                   rows={2} placeholder="Descreva ocorrências ou detalhes relevantes..."
                   className={sharedInputClass + ' resize-none'}

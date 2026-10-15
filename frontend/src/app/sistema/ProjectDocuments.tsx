@@ -406,8 +406,8 @@ export function ProjectDocuments() {
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Obra *</label>
-                <select value={documentForm.obraId} onChange={e => setDocumentForm(p => ({ ...p, obraId: e.target.value }))}
+                <label htmlFor="projectdocuments-campo-1" className="block text-sm font-semibold text-gray-700 mb-1">Obra *</label>
+                <select id="projectdocuments-campo-1" value={documentForm.obraId} onChange={e => setDocumentForm(p => ({ ...p, obraId: e.target.value }))}
                   required className={baseInputClass + ' bg-white'}>
                   <option value="">Selecione a obra</option>
                   {projects
@@ -417,8 +417,8 @@ export function ProjectDocuments() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Título *</label>
-                <input value={documentForm.title}
+                <label htmlFor="projectdocuments-campo-2" className="block text-sm font-semibold text-gray-700 mb-1">Título *</label>
+                <input id="projectdocuments-campo-2" value={documentForm.title}
                   onChange={e => setDocumentForm(p => ({ ...p, title: e.target.value }))}
                   required placeholder="Ex: Alvará de Construção nº 4521/2025"
                   className={baseInputClass} />
@@ -426,21 +426,21 @@ export function ProjectDocuments() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Tipo *</label>
-                  <select value={documentForm.type} onChange={e => setDocumentForm(p => ({ ...p, type: e.target.value as DocumentCategory }))}
+                  <label htmlFor="projectdocuments-campo-3" className="block text-sm font-semibold text-gray-700 mb-1">Tipo *</label>
+                  <select id="projectdocuments-campo-3" value={documentForm.type} onChange={e => setDocumentForm(p => ({ ...p, type: e.target.value as DocumentCategory }))}
                     className={baseInputClass + ' bg-white'}>
                     {DOCUMENT_CATEGORIES.map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  <label htmlFor="projectdocuments-campo-4" className="block text-sm font-semibold text-gray-700 mb-1">
                     Status
                     {documentForm.expiryDate && (
                       <span className="ml-1 text-[10px] text-gray-400">(auto por vencimento)</span>
                     )}
                   </label>
-                  <select value={documentForm.status} onChange={e => setDocumentForm(p => ({ ...p, status: e.target.value as DocumentValidityStatus }))}
+                  <select id="projectdocuments-campo-4" value={documentForm.status} onChange={e => setDocumentForm(p => ({ ...p, status: e.target.value as DocumentValidityStatus }))}
                     className={baseInputClass + ' bg-white'}>
                     {(Object.keys(VALIDITY_STATUS_STYLES) as DocumentValidityStatus[]).map(s => (
                       <option key={s}>{s}</option>
@@ -449,19 +449,19 @@ export function ProjectDocuments() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                  <label htmlFor="projectdocuments-campo-5" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                     <Calendar size={13} className="text-gray-400" /> Data de Emissão
                   </label>
-                  <input type="date" value={documentForm.issueDate}
+                  <input id="projectdocuments-campo-5" type="date" value={documentForm.issueDate}
                     onChange={e => setDocumentForm(p => ({ ...p, issueDate: e.target.value }))}
                     className={baseInputClass} />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
+                  <label htmlFor="projectdocuments-campo-6" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                     <AlertTriangle size={13} className="text-yellow-500" /> Data de Vencimento
                   </label>
-                  <input type="date" value={documentForm.expiryDate}
+                  <input id="projectdocuments-campo-6" type="date" value={documentForm.expiryDate}
                     onChange={e => setDocumentForm(p => ({ ...p, expiryDate: e.target.value }))}
                     className={baseInputClass} />
                   {documentForm.expiryDate && (
@@ -473,8 +473,8 @@ export function ProjectDocuments() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Observações</label>
-                <textarea value={documentForm.notes}
+                <label htmlFor="projectdocuments-campo-7" className="block text-sm font-semibold text-gray-700 mb-1">Observações</label>
+                <textarea id="projectdocuments-campo-7" value={documentForm.notes}
                   onChange={e => setDocumentForm(p => ({ ...p, notes: e.target.value }))}
                   rows={2} placeholder="Número do documento, órgão emissor, condições..."
                   className={baseInputClass + ' resize-none'} />
@@ -482,25 +482,27 @@ export function ProjectDocuments() {
 
               {/* Anexo do arquivo */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Arquivo do Documento</label>
-                <div onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#1a2332] hover:bg-gray-50 transition text-center">
+                <label htmlFor="projectdocuments-arquivo" className="block text-sm font-semibold text-gray-700 mb-1">Arquivo do Documento</label>
+                <button type="button" onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#1a2332] hover:bg-gray-50 transition text-center">
                   {documentForm.file ? (
-                    <div className="flex items-center justify-center gap-2 text-green-600">
+                    <span className="flex items-center justify-center gap-2 text-green-600">
                       <FileText size={18} />
                       <span className="text-sm font-semibold">{documentForm.fileName || 'Arquivo anexado'}</span>
-                      <button type="button" onClick={e => { e.stopPropagation(); setDocumentForm(p => ({ ...p, file: '', fileName: '' })); }}
-                        className="text-red-400 hover:text-red-600 ml-1"><X size={14} /></button>
-                    </div>
+                    </span>
                   ) : (
-                    <div className="text-gray-400">
+                    <span className="block text-gray-400">
                       <Upload size={20} className="mx-auto mb-1" />
-                      <p className="text-xs font-semibold">Clique para anexar o documento</p>
-                      <p className="text-xs mt-0.5">PDF, JPG ou PNG · PDF até 5 MB</p>
-                    </div>
+                      <span className="block text-xs font-semibold">Clique para anexar o documento</span>
+                      <span className="block text-xs mt-0.5">PDF, JPG ou PNG · PDF até 5 MB</span>
+                    </span>
                   )}
-                </div>
-                <input ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleFileChange} />
+                </button>
+                {documentForm.file && (
+                  <button type="button" onClick={() => setDocumentForm(p => ({ ...p, file: '', fileName: '' }))}
+                    className="mt-1 flex items-center gap-1 text-xs text-red-500 hover:text-red-700"><X size={12} /> Remover anexo</button>
+                )}
+                <input id="projectdocuments-arquivo" ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleFileChange} />
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -522,8 +524,8 @@ export function ProjectDocuments() {
 
       {/* Modal de pré-visualização do arquivo */}
       {activeModal === 'preview' && selectedDocument && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 overflow-y-auto" onClick={closeModal}>
-          <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 overflow-y-auto" role="presentation" onClick={closeModal} onKeyDown={e => { if (e.key === 'Escape') closeModal(); }}>
+          <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col" role="presentation" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 shrink-0">
               <div>
                 <h2 className="text-lg font-black text-[#1a2332]">{selectedDocument.title}</h2>

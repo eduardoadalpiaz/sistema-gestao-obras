@@ -137,7 +137,7 @@ export function Expenses() {
       obraId:      expenseForm.obraId,
       description: expenseForm.description.trim(),
       category:    expenseForm.category,
-      value:       parseFloat(expenseForm.value.replace(',', '.')),
+      value:       Number.parseFloat(expenseForm.value.replace(',', '.')),
       date:        expenseForm.date,
       fornecedor:  expenseForm.fornecedor.trim() || undefined,
       etapaId:     expenseForm.etapaId || undefined,
@@ -423,43 +423,43 @@ export function Expenses() {
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Obra *</label>
-                <select value={expenseForm.obraId} onChange={e => setExpenseForm(p => ({ ...p, obraId: e.target.value }))} required className={baseInputClass + ' bg-white'}>
+                <label htmlFor="expenses-campo-1" className="block text-sm font-semibold text-gray-700 mb-1">Obra *</label>
+                <select id="expenses-campo-1" value={expenseForm.obraId} onChange={e => setExpenseForm(p => ({ ...p, obraId: e.target.value }))} required className={baseInputClass + ' bg-white'}>
                   <option value="">Selecione a obra</option>
                   {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Descrição *</label>
-                <input value={expenseForm.description} onChange={e => setExpenseForm(p => ({ ...p, description: e.target.value }))} required placeholder="Ex: Compra de cimento" className={baseInputClass} />
+                <label htmlFor="expenses-campo-2" className="block text-sm font-semibold text-gray-700 mb-1">Descrição *</label>
+                <input id="expenses-campo-2" value={expenseForm.description} onChange={e => setExpenseForm(p => ({ ...p, description: e.target.value }))} required placeholder="Ex: Compra de cimento" className={baseInputClass} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Categoria *</label>
-                  <select value={expenseForm.category} onChange={e => setExpenseForm(p => ({ ...p, category: e.target.value as ExpenseCategory }))} className={baseInputClass + ' bg-white'}>
+                  <label htmlFor="expenses-campo-3" className="block text-sm font-semibold text-gray-700 mb-1">Categoria *</label>
+                  <select id="expenses-campo-3" value={expenseForm.category} onChange={e => setExpenseForm(p => ({ ...p, category: e.target.value as ExpenseCategory }))} className={baseInputClass + ' bg-white'}>
                     {EXPENSE_CATEGORIES.map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Valor (R$) *</label>
-                  <input value={expenseForm.value} onChange={e => setExpenseForm(p => ({ ...p, value: e.target.value }))} required placeholder="0,00" className={baseInputClass} />
+                  <label htmlFor="expenses-campo-4" className="block text-sm font-semibold text-gray-700 mb-1">Valor (R$) *</label>
+                  <input id="expenses-campo-4" value={expenseForm.value} onChange={e => setExpenseForm(p => ({ ...p, value: e.target.value }))} required placeholder="0,00" className={baseInputClass} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Data *</label>
-                  <input type="date" value={expenseForm.date} onChange={e => setExpenseForm(p => ({ ...p, date: e.target.value }))} required className={baseInputClass} />
+                  <label htmlFor="expenses-campo-5" className="block text-sm font-semibold text-gray-700 mb-1">Data *</label>
+                  <input id="expenses-campo-5" type="date" value={expenseForm.date} onChange={e => setExpenseForm(p => ({ ...p, date: e.target.value }))} required className={baseInputClass} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Fornecedor</label>
-                  <input value={expenseForm.fornecedor} onChange={e => setExpenseForm(p => ({ ...p, fornecedor: e.target.value }))} placeholder="Ex: Madeirex Ltda" className={baseInputClass} />
+                  <label htmlFor="expenses-campo-6" className="block text-sm font-semibold text-gray-700 mb-1">Fornecedor</label>
+                  <input id="expenses-campo-6" value={expenseForm.fornecedor} onChange={e => setExpenseForm(p => ({ ...p, fornecedor: e.target.value }))} placeholder="Ex: Madeirex Ltda" className={baseInputClass} />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Etapa Associada</label>
-                  <select value={expenseForm.etapaId} onChange={e => setExpenseForm(p => ({ ...p, etapaId: e.target.value }))} className={baseInputClass + ' bg-white'}>
+                  <label htmlFor="expenses-campo-7" className="block text-sm font-semibold text-gray-700 mb-1">Etapa Associada</label>
+                  <select id="expenses-campo-7" value={expenseForm.etapaId} onChange={e => setExpenseForm(p => ({ ...p, etapaId: e.target.value }))} className={baseInputClass + ' bg-white'}>
                     <option value="">Nenhuma</option>
                     {scheduleStages
                       .filter(s => s.obraId === expenseForm.obraId)
@@ -469,31 +469,33 @@ export function Expenses() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Observações</label>
-                <textarea value={expenseForm.notes} onChange={e => setExpenseForm(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Detalhes adicionais..." className={baseInputClass + ' resize-none'} />
+                <label htmlFor="expenses-campo-8" className="block text-sm font-semibold text-gray-700 mb-1">Observações</label>
+                <textarea id="expenses-campo-8" value={expenseForm.notes} onChange={e => setExpenseForm(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Detalhes adicionais..." className={baseInputClass + ' resize-none'} />
               </div>
 
               {/* Envio do comprovante */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Comprovante</label>
-                <div onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#E8821A] hover:bg-orange-50 transition text-center">
+                <label htmlFor="expenses-comprovante" className="block text-sm font-semibold text-gray-700 mb-1">Comprovante</label>
+                <button type="button" onClick={() => fileInputRef.current?.click()}
+                  className="w-full border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#E8821A] hover:bg-orange-50 transition text-center">
                   {expenseForm.receipt ? (
-                    <div className="flex items-center justify-center gap-2 text-green-600">
+                    <span className="flex items-center justify-center gap-2 text-green-600">
                       <Eye size={16} />
                       <span className="text-sm font-semibold">{expenseForm.receiptName || 'Arquivo anexado'}</span>
-                      <button type="button" onClick={e => { e.stopPropagation(); setExpenseForm(p => ({ ...p, receipt: '', receiptName: '' })); }}
-                        className="text-red-400 hover:text-red-600 ml-1"><X size={14} /></button>
-                    </div>
+                    </span>
                   ) : (
-                    <div className="text-gray-400">
+                    <span className="block text-gray-400">
                       <Upload size={20} className="mx-auto mb-1" />
-                      <p className="text-xs font-semibold">Clique para anexar</p>
-                      <p className="text-xs mt-0.5">JPG, PNG ou PDF · fotos são reduzidas sozinhas</p>
-                    </div>
+                      <span className="block text-xs font-semibold">Clique para anexar</span>
+                      <span className="block text-xs mt-0.5">JPG, PNG ou PDF · fotos são reduzidas sozinhas</span>
+                    </span>
                   )}
-                </div>
-                <input ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleReceiptFileChange} />
+                </button>
+                {expenseForm.receipt && (
+                  <button type="button" onClick={() => setExpenseForm(p => ({ ...p, receipt: '', receiptName: '' }))}
+                    className="mt-1 flex items-center gap-1 text-xs text-red-500 hover:text-red-700"><X size={12} /> Remover anexo</button>
+                )}
+                <input id="expenses-comprovante" ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleReceiptFileChange} />
               </div>
 
               <div className="flex gap-3 pt-1">
@@ -515,8 +517,8 @@ export function Expenses() {
 
       {/* Modal de pré-visualização do comprovante */}
       {activeModal === 'receipt' && selectedExpense && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 overflow-y-auto" onClick={closeModal}>
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center p-4 overflow-y-auto" role="presentation" onClick={closeModal} onKeyDown={e => { if (e.key === 'Escape') closeModal(); }}>
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] flex flex-col" role="presentation" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-black text-[#1a2332]">{selectedExpense.description}</h2>
