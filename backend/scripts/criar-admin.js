@@ -3,7 +3,7 @@ require("dotenv").config();
 const { createInitialAdmin } = require("../src/utils/adminInicial");
 const { pool } = require("../src/db");
 
-(async () => {
+void (async () => {
   try {
     const admin = await createInitialAdmin({ email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD });
     console.log(admin ? `Administrador criado: ${admin.email}` : "Já existem usuários, nada foi criado.");
