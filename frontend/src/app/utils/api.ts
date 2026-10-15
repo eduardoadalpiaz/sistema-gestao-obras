@@ -19,6 +19,16 @@ export const getToken = (): string | null => {
 export const setToken = (token: string) => {
   try { localStorage.setItem(TOKEN_KEY, token); } catch { /* sem armazenamento: segue sem guardar */ }
 };
+// usuário logado guardado no navegador (só os campos já limpos pelo contexto)
+export const getStoredUser = (): string | null => {
+  try { return localStorage.getItem(USER_KEY); } catch { return null; }
+};
+export const setStoredUser = (user: Record<string, string | boolean> | null) => {
+  try {
+    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(USER_KEY);
+  } catch { /* sem armazenamento: segue sem guardar */ }
+};
 export const clearSession = () => {
   try {
     localStorage.removeItem(TOKEN_KEY);
