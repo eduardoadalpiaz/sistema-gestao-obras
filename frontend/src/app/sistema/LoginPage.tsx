@@ -70,10 +70,10 @@ export function LoginPage() {
             /* Formulário de login */
             <form onSubmit={handleLoginSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                <label htmlFor="loginpage-campo-1" className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
+                  <input id="loginpage-campo-1"
                     type="email"
                     value={emailInput}
                     onChange={e => setEmailInput(e.target.value)}
@@ -85,10 +85,10 @@ export function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Senha</label>
+                <label htmlFor="loginpage-campo-2" className="block text-sm font-semibold text-gray-700 mb-1.5">Senha</label>
                 <div className="relative">
                   <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
+                  <input id="loginpage-campo-2"
                     type={showPassword ? 'text' : 'password'}
                     value={passwordInput}
                     onChange={e => setPasswordInput(e.target.value)}
@@ -141,8 +141,8 @@ export function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Código de Verificação</label>
-                <input
+                <label htmlFor="loginpage-campo-3" className="block text-sm font-semibold text-gray-700 mb-1.5">Código de Verificação</label>
+                <input id="loginpage-campo-3"
                   type="text"
                   value={verificationCode}
                   onChange={e => setVerificationCode(e.target.value)}

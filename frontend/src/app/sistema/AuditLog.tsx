@@ -38,7 +38,11 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
     >
       <div
         className="flex items-center gap-3 px-4 py-3 cursor-pointer select-none"
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
         onClick={() => hasDetail && setExpanded(e => !e)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (hasDetail) setExpanded(v => !v); } }}
       >
         {/* Data e hora */}
         <div className="text-[10px] text-gray-600 font-mono shrink-0 w-32 hidden sm:block">
