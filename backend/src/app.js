@@ -49,9 +49,16 @@ app.use(compression({ filter: (req, res) => (req.path === "/events" ? false : co
 
 // CORS: define quem pode chamar a API pelo navegador (endereço do front, em CORS_ORIGIN;
 // pode ter mais de um, separados por vírgula).
+// tira as barras do final do endereço (sem expressão regular)
+function semBarraNoFim(texto) {
+  let fim = texto.length;
+  while (fim > 0 && texto[fim - 1] === "/") fim--;
+  return texto.slice(0, fim);
+}
+
 const allowedOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
-  .map((o) => o.trim().replace(/\/+$/, ""))
+  .map((o) => semBarraNoFim(o.trim()))
   .filter(Boolean);
 if (allowedOrigins.length === 0) {
   console.warn("[segurança] CORS_ORIGIN não definido: liberando qualquer origem. Defina com o endereço do front.");
