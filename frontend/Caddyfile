@@ -36,3 +36,15 @@
 		Strict-Transport-Security "max-age=31536000"
 	}
 }
+
+# Staging: a mesma versão que vai para a produção, testada antes (porta 8443).
+# O certificado HTTPS é o mesmo do domínio.
+{$DOMAIN}:8443 {
+	reverse_proxy staging-web:8081
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+}
