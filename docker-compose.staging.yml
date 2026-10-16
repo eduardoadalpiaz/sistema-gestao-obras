@@ -1,0 +1,56 @@
+# Staging: cópia da produção para testar cada versão antes de ela ir ao ar.
+# Banco, API e segredos próprios; nada aqui toca nos dados da produção.
+# O deploy sobe este arquivo primeiro; a produção só atualiza se o staging ficar saudável.
+# Uso: docker compose -f docker-compose.staging.yml up -d --build --wait
+name: obras-staging
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: obras
+      POSTGRES_USER: obras
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:?defina STAGING_POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata_staging:/var/lib/postgresql/data
+      # cria as tabelas na primeira subida (banco vazio)
+      - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U obras -d obras"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://obras:${STAGING_POSTGRES_PASSWORD}@db:5432/obras
+      DATABASE_SSL: "false"
+      JWT_SECRET: ${STAGING_JWT_SECRET:?defina STAGING_JWT_SECRET no .env}
+      CORS_ORIGIN: https://${DOMAIN}:8443
+
+  # Site do staging: Caddy simples, sem HTTPS próprio. Quem recebe a internet
+  # (em https://DOMINIO:8443) é o Caddy da produção, que encaminha para cá.
+  staging-web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    volumes:
+      - ./frontend/Caddyfile.staging:/etc/caddy/Caddyfile:ro
+    networks:
+      - default
+      - staging-net
+
+volumes:
+  pgdata_staging:
+
+networks:
+  staging-net:
+    name: obras-staging-net

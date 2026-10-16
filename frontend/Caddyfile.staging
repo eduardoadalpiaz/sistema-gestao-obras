@@ -1,0 +1,27 @@
+# Caddy do staging: só HTTP na rede interna do Docker (o HTTPS é do Caddy da produção).
+{
+	auto_https off
+}
+
+http://:8081 {
+	# /metrics não sai para fora
+	@metrics path /api/metrics /api/metrics/*
+	handle @metrics {
+		respond 404
+	}
+
+	# /api/* vai para o back-end do staging (sem o prefixo /api)
+	handle_path /api/* {
+		reverse_proxy api:3001 {
+			flush_interval -1
+		}
+	}
+
+	# o resto é o site (React)
+	handle {
+		encode gzip
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
