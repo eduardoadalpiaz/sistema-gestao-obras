@@ -1,101 +1,85 @@
-# Sistema Web para Gestão de Obras com Acompanhamento em Tempo Real
+# Sistema de Gestão de Obras — Dal Piaz Incorporadora
 
-## Sobre o projeto
+[![CI](https://github.com/eduardoadalpiaz/sistema-gestao-obras/actions/workflows/ci.yml/badge.svg)](https://github.com/eduardoadalpiaz/sistema-gestao-obras/actions/workflows/ci.yml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=eduardoadalpiaz_sistema-gestao-obras&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=eduardoadalpiaz_sistema-gestao-obras)
 
-Este projeto consiste em uma proposta de sistema web para gestão de obras, voltado principalmente para pequenas e médias incorporadoras da construção civil.
+Aplicação web para acompanhar as obras de uma incorporadora: etapas, andamento, prazos, gastos, documentos e equipe, com perfis de acesso e atualização em tempo real. Projeto de TCC / Portfólio da Católica SC.
 
-A proposta tem como objetivo centralizar informações relacionadas às obras, permitindo o acompanhamento de cronogramas, custos, documentos, etapas, responsáveis e indicadores em uma única plataforma. O sistema busca substituir controles manuais, planilhas e informações dispersas em aplicativos de mensagens por uma solução mais organizada, rastreável e acessível.
+| | Endereço |
+|---|---|
+| **Produção** | https://sistema-gestao-obras.northcentralus.cloudapp.azure.com |
+| **Staging** (teste antes da produção) | https://sistema-gestao-obras.northcentralus.cloudapp.azure.com:8443 |
+| **Wiki** (requisitos, C4, fluxos, deploy, testes) | https://github.com/eduardoadalpiaz/sistema-gestao-obras/wiki |
 
-## Problema identificado
+## Problema
 
-Em muitas empresas da construção civil, especialmente de pequeno e médio porte, o acompanhamento das obras ainda é realizado por meio de planilhas, grupos de WhatsApp, registros manuais e documentos armazenados em locais diferentes.
+Pequenas e médias incorporadoras costumam acompanhar obras por planilhas, grupos de mensagens e documentos espalhados. Isso gera informação desatualizada, atrasos difíceis de enxergar, custos pouco integrados e nenhuma rastreabilidade das alterações.
 
-Esse cenário gera dificuldades como:
+## O que o sistema faz
 
-* informações desatualizadas ou inconsistentes;
-* dificuldade para identificar atrasos;
-* falta de rastreabilidade sobre alterações realizadas;
-* controle de custos pouco integrado;
-* documentos importantes espalhados;
-* demora na geração de relatórios gerenciais.
+* Login com e-mail e senha e seis perfis de acesso (Administrativo, Engenheiro, Mestre de Obras, Visualizador, TI e Dono);
+* Cadastro de obras com endereço preenchido pelo CEP e localização no mapa;
+* Etapas com andamento (0–100%), andamento geral da obra e situação "No Prazo" ou "Atrasada";
+* Estimativa de prazo de conclusão;
+* Gastos com comprovante e comparação entre custo estimado e realizado;
+* Documentos com validade (válido, vencendo, vencido);
+* Painel com indicadores e relatórios em PDF e Excel;
+* Histórico de auditoria (quem fez o quê e quando);
+* Atualização em tempo real entre usuários e análise da obra por IA (extra).
 
-## Proposta de solução
+A lista completa, com a situação de cada requisito, está na [Wiki](https://github.com/eduardoadalpiaz/sistema-gestao-obras/wiki).
 
-A solução proposta é uma plataforma web para gestão integrada de obras, permitindo que os usuários cadastrem, acompanhem e controlem informações importantes de cada projeto.
+## Tecnologias
 
-O sistema será desenvolvido com foco em simplicidade, acessibilidade e apoio à tomada de decisão, oferecendo recursos visuais e operacionais para facilitar o acompanhamento das obras.
+React 18 + Vite + TypeScript + Tailwind · Node 22 + Express · PostgreSQL 16 · JWT + bcrypt · Docker Compose · Caddy (HTTPS automático) · Prometheus + Grafana · SonarQube Cloud · GitHub Actions · Azure (máquina virtual).
 
-## Funcionalidades previstas
+## Ambientes
 
-* Cadastro completo de obras;
-* Consulta automática de endereço por CEP;
-* Visualização das obras em mapas;
-* Controle de cronograma por etapas;
-* Acompanhamento de progresso da obra;
-* Dashboard com indicadores gerenciais;
-* Notificações automáticas sobre prazos e atrasos;
-* Controle de usuários com diferentes perfis de acesso;
-* Registro de despesas vinculadas à obra;
-* Comparação entre custo estimado e custo acumulado;
-* Armazenamento de documentos como alvarás, contratos, plantas e comprovantes;
-* Histórico de alterações para auditoria;
-* Exportação de relatórios em PDF e Excel;
-* Estimativa de prazo baseada no histórico de obras anteriores.
+| Ambiente | Onde roda | Para que serve |
+|---|---|---|
+| **Desenvolvimento** | no computador de quem desenvolve (`docker compose up --build`, ou back e front separados) | escrever e testar o código |
+| **Staging** | na Azure, `docker-compose.staging.yml`, com banco e segredos próprios | receber cada versão primeiro e conferir se responde |
+| **Produção** | na Azure, `docker-compose.yml` | o sistema usado de verdade |
 
-## Inovação e diferenciais
+A cada push na `main`, o GitHub Actions roda o CI. Se ele passar, o workflow Deploy sobe o staging, confere o `/api/health` e só então atualiza a produção. Se o staging falhar, a produção não é tocada.
 
-O diferencial do projeto está na combinação de funcionalidades voltadas à realidade de pequenas e médias incorporadoras.
+## Como rodar
 
-O sistema vai além de um simples cadastro de obras, pois reúne controle de cronograma, despesas, documentos, notificações, histórico de alterações, mapas e estimativa de prazo com base em obras anteriores.
+```bash
+# banco + API + site
+cp .env.producao.example .env      # preencha os valores (o .env nunca vai para o GitHub)
+docker compose up --build
+```
 
-Entre os principais diferenciais, destacam-se:
+Sem Docker:
 
-* estimativa de prazo baseada em histórico de obras similares;
-* controle de despesas diretamente vinculado à obra;
-* comparação entre custo estimado e custo acumulado;
-* armazenamento documental centralizado;
-* uso de CEP e mapas para facilitar o cadastro e a localização;
-* notificações automáticas para acompanhamento de prazos;
-* histórico de alterações para aumentar a rastreabilidade.
+```bash
+cd backend  && npm ci && npm run dev     # precisa de DATABASE_URL e JWT_SECRET
+cd frontend && npm ci && npm run dev
+```
 
-## Necessidade de mercado
+O passo a passo do banco, do primeiro administrador e do deploy está em [`backend/README.md`](backend/README.md).
 
-Pequenas e médias incorporadoras muitas vezes não possuem sistemas especializados ou equipes de TI dedicadas. Além disso, soluções comerciais robustas podem ter alto custo, curva de aprendizado elevada e funcionalidades excessivamente complexas.
+## Como testar
 
-Dessa forma, existe uma necessidade de mercado por uma solução mais simples, acessível e objetiva, capaz de centralizar informações essenciais da obra e apoiar a gestão operacional.
+```bash
+cd backend  && npm run test:coverage   # PostgreSQL real; o banco de teste precisa terminar em _test
+cd frontend && npm run test:coverage
+```
 
-## Tecnologias previstas
+O CI falha se a cobertura de linhas ficar abaixo de **75%** no back-end ou de **25%** no front-end. Os números atuais ficam na página *Testes e Qualidade* da Wiki.
 
-A arquitetura proposta será baseada em uma aplicação web organizada em camadas.
+## Qualidade, observabilidade e segurança
 
-Tecnologias previstas:
+* **CI/CD:** GitHub Actions (testes, build das imagens Docker, SonarQube Cloud e deploy automático).
+* **Análise estática:** SonarQube Cloud com Quality Gate nos pull requests.
+* **Observabilidade:** o back-end expõe métricas em `/metrics` (fechado para a internet), o Prometheus coleta e o Grafana mostra os painéis em `/grafana` (com login).
+* **Segurança:** segredos só em variáveis de ambiente, HTTPS, senhas com bcrypt, rotas protegidas por JWT, Caddy sem rodar como root.
 
-* **Front-end:** React.js;
-* **Back-end:** Node.js com Express.js;
-* **Banco de dados:** PostgreSQL;
-* **Autenticação:** JWT;
-* **Envio de e-mails:** Nodemailer;
-* **Hospedagem:** Azure (máquina virtual com Docker Compose, Caddy com HTTPS automático e deploy via GitHub Actions);
-* **APIs externas:** consulta de CEP, mapas e e-mail.
+## Como contribuir
 
-## Resultados esperados
-
-Espera-se que o sistema contribua para:
-
-* melhorar a organização das informações das obras;
-* reduzir falhas de comunicação;
-* facilitar a identificação de atrasos;
-* apoiar o controle de custos por obra;
-* aumentar a rastreabilidade das alterações;
-* simplificar a geração de relatórios;
-* apoiar a tomada de decisão com dados atualizados.
+Veja o [`CONTRIBUTING.md`](CONTRIBUTING.md): como rodar, como testar, o ciclo de TDD e como abrir um pull request.
 
 ## Autor
 
-Eduardo Alberto Dal Piaz
-Universidade Católica de Santa Catarina
-
-## Status do projeto
-
-Projeto em fase de proposta e desenvolvimento acadêmico para portfólio.
-
+Eduardo Alberto Dal Piaz — Universidade Católica de Santa Catarina.

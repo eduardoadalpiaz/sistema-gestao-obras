@@ -65,16 +65,22 @@ A API sobe em `http://localhost:3001` (ou a porta definida em `PORT`).
 
 ## 4. Deploy (Azure + Docker Compose)
 
-Em produção, tudo roda em uma máquina virtual na Azure, com três containers
-(banco PostgreSQL, API e site com Caddy). Na raiz do repositório:
+Em produção, tudo roda em uma máquina virtual na Azure (banco PostgreSQL, API, site com
+Caddy, Prometheus e Grafana). Ao lado dela roda o **staging**, uma cópia com banco e
+segredos próprios (`docker-compose.staging.yml`), que recebe cada versão antes da
+produção. Na raiz do repositório:
 
 1. Instale Docker e Git na máquina e clone o repositório
 2. Copie `.env.producao.example` para `.env` e preencha `DOMAIN`, `POSTGRES_PASSWORD`,
    `JWT_SECRET` (e `GEMINI_API_KEY`, se usar a IA)
 3. Suba tudo: `docker compose up -d --build`
 4. Crie o banco rodando `backend/sql/schema.sql` (ou restaure um backup com `psql`)
-5. A cada push na `main`, o GitHub Actions roda o CI e, se passar, o workflow `Deploy`
-   atualiza o servidor por SSH (segredos `SERVER_HOST`, `SERVER_USER` e `SERVER_SSH_KEY`)
+5. Para o staging, preencha também `STAGING_POSTGRES_PASSWORD` e `STAGING_JWT_SECRET` no `.env`
+   e abra a porta 8443 no firewall da VM
+6. A cada push na `main`, o GitHub Actions roda o CI e, se passar, o workflow `Deploy`
+   sobe o staging (`docker compose -f docker-compose.staging.yml up -d --build --wait`),
+   confere o `/api/health` dele e só então atualiza a produção
+   (segredos `SERVER_HOST`, `SERVER_USER` e `SERVER_SSH_KEY`)
 
 O Caddy serve o site em HTTPS e encaminha `/api/*` para a API.
 
