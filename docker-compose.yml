@@ -71,9 +71,19 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8443:8443"
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      - default
+      - staging-net
+
+# rede criada pelo docker-compose.staging.yml (o deploy sobe o staging primeiro)
+networks:
+  staging-net:
+    name: obras-staging-net
+    external: true
 
 volumes:
   pgdata:
