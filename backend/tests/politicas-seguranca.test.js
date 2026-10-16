@@ -52,4 +52,21 @@ describe("políticas de segurança (configuração)", () => {
   it("o setup dos testes do front rejeita a promessa sempre com um Error", () => {
     assert.doesNotMatch(ler("frontend/tests/setup.ts"), /reject\(leitor\.error\)/);
   });
+
+  it("o container do Caddy (front) não roda como root", () => {
+    const usos = ler("frontend/Dockerfile").match(/^USER\s+(\S+)/gim) || [];
+    assert.ok(usos.length > 0, "frontend/Dockerfile sem USER");
+    const ultimo = usos[usos.length - 1].split(/\s+/)[1].toLowerCase();
+    assert.ok(!["root", "0", "0:0"].includes(ultimo), `USER final é ${ultimo}`);
+  });
+
+  it("o Caddy comum ainda pode abrir as portas 80 e 443 (capability) e grava em /data e /config", () => {
+    const dockerfile = ler("frontend/Dockerfile");
+    assert.match(dockerfile, /setcap cap_net_bind_service=\+ep \/usr\/bin\/caddy/);
+    assert.match(dockerfile, /chown -R \S+ \/data \/config/);
+  });
+
+  it("os arquivos copiados para o Caddy continuam do root (o usuário comum só lê)", () => {
+    assert.doesNotMatch(ler("frontend/Dockerfile"), /^COPY\s+--chown/m);
+  });
 });
