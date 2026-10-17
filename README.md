@@ -69,6 +69,29 @@ cd frontend && npm run test:coverage
 
 O CI falha se a cobertura de linhas ficar abaixo de **75%** no back-end ou de **25%** no front-end. Os números atuais ficam na página *Testes e Qualidade* da Wiki.
 
+## Backup do banco
+
+Os scripts ficam em `scripts/`. A pasta `backups/` fica fora do GitHub (tem dados reais e hashes de senha).
+
+```bash
+# na VM: exporta o banco, comprime e guarda os 14 backups mais novos em backups/
+./scripts/backup-banco.sh
+
+# agendar todo dia às 03:00 (crontab -e na VM)
+0 3 * * * cd ~/sistema-gestao-obras && ./scripts/backup-banco.sh >> backups/backup.log 2>&1
+
+# no Mac: baixa o backup mais novo da VM para ~/backups-obras
+./scripts/baixar-backup.sh
+
+# testa a restauração num banco descartável (não toca no banco de verdade)
+./scripts/restaurar-backup.sh backups/obras-AAAAMMDD-HHMMSS.sql.gz
+
+# restaura no banco de verdade (pede para digitar RESTAURAR)
+./scripts/restaurar-backup.sh --producao backups/obras-AAAAMMDD-HHMMSS.sql.gz
+```
+
+A restauração roda numa transação única: se algo falhar, nada fica pela metade.
+
 ## Qualidade, observabilidade e segurança
 
 * **CI/CD:** GitHub Actions (testes, build das imagens Docker, SonarQube Cloud e deploy automático).
