@@ -16,6 +16,7 @@ const server = app.listen(PORT, () => {
 function shutdown(signal) {
   console.log(`\n[server] Recebido ${signal}, encerrando graciosamente...`);
   closeAll();
+  // para de aceitar pedidos, espera os em andamento e só então fecha o banco
   server.close(async () => {
     await pool.end();
     console.log("[server] Conexões fechadas. Até logo.");

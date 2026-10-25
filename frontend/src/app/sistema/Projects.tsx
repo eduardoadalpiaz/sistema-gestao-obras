@@ -276,6 +276,7 @@ export function Projects() {
     setAiError(null);
     setAiAnalysis(null);
     try {
+      // pede a análise de IA
       const text = await generateProjectAnalysis(obraId);
       if (analysisRequestRef.current !== obraId) return; // o modal foi fechado ou trocado
       setAiAnalysis(text);
@@ -294,9 +295,11 @@ export function Projects() {
     // Nomes da equipe são opcionais: tira linhas em branco e espaços sobrando.
     const cleanedForm = {
       ...projectForm,
+      // tira espaços e descarta nomes vazios da equipe
       teamMembers: (projectForm.teamMembers ?? []).map(n => n.trim()).filter(Boolean),
     };
     if (activeModal === 'add') {
+      // cria a obra sempre com progresso 0
       await createProject({ ...cleanedForm, progress: 0 });
     } else if (activeModal === 'edit' && selectedProject) {
       await updateProject(selectedProject.id, cleanedForm);

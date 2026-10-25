@@ -1,9 +1,11 @@
 // Monta a aplicação Express (CORS, compressão, JSON e rotas de cada recurso).
 // Fica separada do server.js pra os testes subirem a API sem abrir a porta de verdade.
+// bibliotecas externas
 const express = require("express");
 const cors = require("cors");
 const compression = require("compression");
 
+// partes do nosso projeto: banco, middlewares, tempo real e métricas
 const { checkConnection } = require("./db");
 const { selectAll } = require("./repo");
 const { asyncHandler } = require("./middleware/asyncHandler");
@@ -13,6 +15,7 @@ const { rateLimit } = require("./middleware/rateLimit");
 const { subscribe, notifyChange } = require("./realtime");
 const { metricsMiddleware, metricsHandler } = require("./metrics");
 
+// um arquivo de rotas para cada recurso
 const authRoutes          = require("./routes/auth");
 const usersRoutes         = require("./routes/users");
 const obrasRoutes         = require("./routes/obras");
@@ -33,6 +36,7 @@ app.disable("x-powered-by");
 app.use((_req, res, next) => {
   res.set({
     "X-Content-Type-Options": "nosniff",
+    // proíbe abrir a API dentro de outro site (iframe)
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "no-referrer",
     "Cache-Control": "no-store",
@@ -45,6 +49,7 @@ app.use(metricsMiddleware);
 
 // Comprime as respostas: o /data pode ficar bem grande quando tem muita obra,
 // gasto e documento.
+// comprime tudo, menos o /events (tempo real não pode atrasar)
 app.use(compression({ filter: (req, res) => (req.path === "/events" ? false : compression.filter(req, res)) }));
 
 // CORS: define quem pode chamar a API pelo navegador (endereço do front, em CORS_ORIGIN;
@@ -74,6 +79,7 @@ app.use(
 // Corpo JSON: 100 KB na maioria das rotas. Gastos e documentos levam arquivo (base64) e têm
 // um limite maior, mas só depois de conferir o login, pra ninguém mandar arquivo grande sem estar logado.
 const smallJson = express.json({ limit: "100kb" });
+// 9 MB: só para rotas com arquivo em base64
 const fileJson = express.json({ limit: "9mb" });
 const FILE_ROUTES = ["/gastos", "/documentos"];
 app.use((req, res, next) =>
@@ -87,6 +93,7 @@ app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 // verdade, e não só se o Node está de pé. É o endereço que o Docker checa (healthcheck).
 app.get("/health", async (_req, res) => {
   try {
+    // pergunta ao banco se ele responde
     await checkConnection();
     res.json({ status: "ok", database: "connected", timestamp: new Date().toISOString() });
   } catch (err) {
@@ -102,6 +109,7 @@ app.get("/metrics", asyncHandler(metricsHandler));
 app.get("/data", authenticate, asyncHandler(async (req, res) => {
   // o histórico só vai pra TI e Dono (os outros perfis recebem lista vazia)
   const canSeeAudit = ["TI", "Dono"].includes(req.user.role);
+  // busca as 7 tabelas ao mesmo tempo
   const [users, obras, stages, notifications, gastos, documentos, audit] = await Promise.all([
     selectAll("usuarios", "created_at"),
     selectAll("obras", "created_at"),
@@ -109,11 +117,13 @@ app.get("/data", authenticate, asyncHandler(async (req, res) => {
     selectAll("notificacoes", "created_at", false),
     selectAll("despesas_obra", "created_at", false),
     selectAll("documentos_obra", "created_at", false),
+    // histórico só para TI e Dono; os outros recebem lista vazia
     canSeeAudit ? selectAll("historico_alteracoes", "created_at", false) : [],
   ]);
 
   // nunca devolver o hash da senha; o código de verificação só o administrador vê
   const isAdmin = req.user.role === "Administrativo";
+  // nunca devolve o hash; o código de verificação só vai para o Administrativo
   const safeUsers = users.map(({ passwordHash, verificationCode, ...u }) =>
     isAdmin ? { ...u, verificationCode } : u
   );
@@ -127,6 +137,7 @@ app.get("/events", authenticate, subscribe);
 // Depois de qualquer alteração que deu certo, avisa todas as telas abertas.
 app.use(["/users", "/obras", "/stages", "/gastos", "/documentos", "/notifications"], (req, res, next) => {
   if (req.method !== "GET" && req.method !== "OPTIONS") {
+    // resposta sem erro: avisa todas as telas abertas
     res.on("finish", () => { if (res.statusCode < 400) notifyChange(); });
   }
   next();
@@ -137,8 +148,10 @@ app.use(["/users", "/obras", "/stages", "/gastos", "/documentos", "/notification
 // /auth é público (é onde se faz login) e tem limite próprio por IP; o resto exige login.
 app.use("/auth", rateLimit({ windowMs: 15 * 60_000, max: 60, message: "Muitas tentativas. Tente de novo em alguns minutos." }), authRoutes);
 app.use("/users", authenticate, usersRoutes);
+// /obras exige login antes de chegar nas rotas
 app.use("/obras", authenticate, obrasRoutes);
 app.use("/stages", authenticate, stagesRoutes);
+// primeiro confere o login, depois lê o corpo grande
 app.use("/gastos", authenticate, fileJson, gastosRoutes);
 app.use("/documentos", authenticate, fileJson, documentosRoutes);
 app.use("/notifications", authenticate, notificationsRoutes);

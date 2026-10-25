@@ -2,6 +2,7 @@
 # Ordem: 1) sobe o staging  2) confere se ele responde  3) só então atualiza a produção.
 name: Deploy
 
+# dispara quando o workflow CI termina na main
 on:
   workflow_run:
     workflows: ["CI"]
@@ -10,21 +11,31 @@ on:
 
 jobs:
   deploy:
+    # só faz deploy se o CI passou
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Atualiza e reinicia no servidor
+        # entra na VM por SSH (ação fixada por SHA)
         uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
         with:
+          # endereço, usuário e chave ficam nos segredos do GitHub
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          # para no primeiro erro
           script_stop: true
           script: |
+            # qualquer erro para o script e a produção não é tocada
             set -e
             cd ~/sistema-gestao-obras
+            # baixa o código novo
             git pull origin main
+            # 1) sobe o staging (cópia da produção para testar antes)
             docker compose -f docker-compose.staging.yml up -d --build --wait
+            # 2) confere se o staging responde e está ligado ao banco
             docker compose -f docker-compose.staging.yml exec -T staging-web wget -qO- http://127.0.0.1:8081/api/health | grep -q '"database":"connected"'
+            # 3) só agora atualiza a produção
             docker compose up -d --build
+            # limpa imagens antigas
             docker image prune -f

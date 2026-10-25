@@ -117,6 +117,7 @@ export function Expenses() {
     const file = input.files?.[0];
     if (!file) return;
     try {
+      // reduz a imagem e converte para base64
       const prepared = await prepareUpload(file);
       setExpenseForm(prev => ({ ...prev, receipt: prepared.dataUrl, receiptName: prepared.name }));
     } catch (err) {
@@ -147,6 +148,7 @@ export function Expenses() {
       createdBy:   activeUser?.id ?? '',
     };
     if (activeModal === 'add') {
+      // salva o gasto
       await recordExpense(payload);
     } else if (activeModal === 'edit' && selectedExpense) {
       await updateExpense(selectedExpense.id, payload);

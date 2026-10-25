@@ -473,6 +473,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
             buffer += decoder.decode(value, { stream: true });
             const parts = buffer.split('\n\n');
             buffer = parts.pop() ?? '';
+            // chegou o aviso de mudança: busca o /data de novo
             if (parts.some(p => p.includes('event: changed'))) void refresh();
           }
         } catch { if (cancelled) return; }
@@ -530,6 +531,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // nas edições, o valor antigo e o novo
   const pushAuditEntry = useCallback(async (entry: Omit<AuditEntry, 'id' | 'createdAt'>) => {
     try {
+      // manda o registro para o histórico no servidor
       const res = await api<{ entry: AuditEntry }>('/audit', {
         method: 'POST',
         body: JSON.stringify(entry),
@@ -547,10 +549,12 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   const syncProjectProgress = useCallback(async (obraId: string, stages: ScheduleStage[]) => {
     const projectStages = stages.filter(s => s.obraId === obraId);
     if (projectStages.length === 0) return;
+    // progresso da obra = média do progresso das etapas
     const progress = Math.round(
       projectStages.reduce((sum, s) => sum + s.progress, 0) / projectStages.length
     );
     try {
+      // grava o novo progresso na obra
       await api(`/obras/${obraId}`, {
         method: 'PUT',
         body: JSON.stringify({ progress }),
@@ -567,6 +571,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // precisa ser verificada (guarda o usuário pendente pra tela do código) ou erro (mostra a mensagem).
   const login = async (email: string, password: string): Promise<AuthenticationResult> => {
     try {
+      // pede o login ao servidor
       const res = await api<{
         success?: boolean; error?: string; needsVerification?: boolean;
         user?: TeamMember; token?: string; verifyToken?: string;
@@ -578,6 +583,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
         return { success: false, needsVerification: true };
       }
       if (res.success && res.user && res.token) {
+        // guarda o token no navegador
         setToken(res.token);
         setIsInitializing(true); // evita mostrar telas vazias enquanto os dados carregam
         setActiveUser(res.user);
@@ -626,6 +632,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // Equipe (usuários)
 
   const registerTeamMember = async (memberData: Omit<TeamMember, 'id' | 'createdAt'>): Promise<string> => {
+    // cadastra o usuário e recebe o código de verificação
     const res = await api<{ user: TeamMember; verificationCode: string }>('/users', {
       method: 'POST',
       body: JSON.stringify(memberData),
@@ -692,12 +699,15 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // 1) chama a API, 2) atualiza o estado da tela, 3) gera uma notificação e
   // 4) grava no histórico quem fez a alteração.
   const createProject = async (projectData: Omit<Project, 'id' | 'createdAt'>): Promise<void> => {
+    // cria a obra no servidor
     const res = await api<{ obra: Project }>('/obras', {
       method: 'POST',
       body: JSON.stringify(projectData),
     });
     setProjects(prev => [...prev, res.obra]);
+    // avisa que a obra foi criada
     pushNotification('info', `Nova obra "${projectData.name}" adicionada ao sistema`);
+    // registra no histórico quem criou a obra
     pushAuditEntry({
       userId:     activeUserRef.current?.id ?? '',
       userName:   activeUserRef.current?.name ?? 'Sistema',
@@ -765,6 +775,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // Se der erro, a rota devolve { message } (503 sem chave, 502 se a IA falhar...).
   const generateProjectAnalysis = async (obraId: string): Promise<string> => {
     try {
+      // pede a análise de IA ao servidor
       const res = await api<{ analysis: string }>('/ai/analyze-obra', {
         method: 'POST',
         body: JSON.stringify({ obraId }),
@@ -808,6 +819,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     const existing = scheduleStagesRef.current.find(s => s.id === id);
     if (!existing) return;
 
+    // atualiza a etapa no servidor
     const res = await api<{ stage: ScheduleStage }>(`/stages/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
@@ -820,6 +832,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     if (updates.status && updates.status !== existing.status) {
       const project = projectsRef.current.find(p => p.id === existing.obraId);
       const pName   = project?.name ?? 'Obra';
+      // avisos por status: Concluída (sucesso), Atrasada (alerta), Em andamento (informação)
       if (updates.status === 'Concluída') {
         pushNotification('success', `Etapa "${existing.name}" da obra "${pName}" foi concluída!`, existing.obraId);
       } else if (updates.status === 'Atrasada') {
@@ -870,6 +883,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // Gastos
 
   const recordExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>): Promise<void> => {
+    // lança o gasto no servidor
     const res = await api<{ gasto: Expense }>('/gastos', {
       method: 'POST',
       body: JSON.stringify(expenseData),
@@ -934,6 +948,7 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
   // Documentos
 
   const attachDocument = async (docData: Omit<ProjectDocument, 'id' | 'createdAt'>): Promise<void> => {
+    // anexa o documento no servidor
     const res = await api<{ documento: ProjectDocument }>('/documentos', {
       method: 'POST',
       body: JSON.stringify(docData),

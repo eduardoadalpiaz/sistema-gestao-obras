@@ -23,11 +23,13 @@ const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
 // Mede cada requisição quando a resposta termina.
 function metricsMiddleware(req, res, next) {
+  // liga o cronômetro quando o pedido chega
   const stop = duration.startTimer();
   res.on("finish", () => {
     // troca os ids por :id (senão cada obra viraria uma série nova) e agrupa as rotas inexistentes
     const route = req.route ? req.originalUrl.split("?")[0].replace(UUID, ":id") : "desconhecida";
     const labels = { method: req.method, route, status: String(res.statusCode) };
+    // ao terminar: conta +1 e para o cronômetro
     requests.inc(labels);
     stop(labels);
   });

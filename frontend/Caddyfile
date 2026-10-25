@@ -22,17 +22,26 @@
 
 	# o resto é o site (React)
 	handle {
+		# comprime as respostas
 		encode gzip
 		root * /srv
+		# qualquer rota do React cai no index.html (SPA)
 		try_files {path} /index.html
+		# entrega os arquivos do site
 		file_server
 	}
 
+	# cabeçalhos de segurança em toda resposta
 	header {
+		# impede o navegador de adivinhar o tipo do arquivo
 		X-Content-Type-Options nosniff
+		# proíbe abrir o site dentro de iframe (clickjacking)
 		X-Frame-Options DENY
+		# limita o que é enviado a outros sites
 		Referrer-Policy strict-origin-when-cross-origin
+		# desliga câmera, microfone e localização
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# força HTTPS por 1 ano
 		Strict-Transport-Security "max-age=31536000"
 	}
 }
@@ -40,6 +49,7 @@
 # Staging: a mesma versão que vai para a produção, testada antes (porta 8443).
 # O certificado HTTPS é o mesmo do domínio.
 {$DOMAIN}:8443 {
+	# encaminha tudo para o container do staging
 	reverse_proxy staging-web:8081
 
 	header {

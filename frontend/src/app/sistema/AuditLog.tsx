@@ -132,6 +132,7 @@ export function AuditLog() {
   // O histórico é uma área sensível: só os perfis TI e Dono acessam, mesmo que alguém
   // digite a URL direto (o link também fica escondido no menu).
   const allowedRoles = ['TI', 'Dono'];
+  // quem não é TI nem Dono não vê a tela
   if (!activeUser || !allowedRoles.includes(activeUser.role)) {
     return (
       <div className="max-w-lg mx-auto text-center py-20">

@@ -6,6 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PRODUCAO=0
+# só mexe na produção com --producao
 if [ "${1:-}" = "--producao" ]; then PRODUCAO=1; shift; fi
 ARQUIVO="${1:-}"
 

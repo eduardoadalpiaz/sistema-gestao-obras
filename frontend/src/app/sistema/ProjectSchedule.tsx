@@ -121,6 +121,7 @@ export function ProjectSchedule() {
         notes:         stageForm.notes,
       });
     } else if (activeModal === 'edit' && editingStage) {
+      // salva a etapa
       await updateScheduleStage(editingStage.id, {
         name:          stageForm.name,
         plannedStart:  stageForm.plannedStart,
