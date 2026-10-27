@@ -4,6 +4,7 @@ const { query } = require("../db");
 const { insertRow, updateRowNoTimestamp } = require("../repo");
 const { asyncHandler } = require("../middleware/asyncHandler");
 
+// roteador deste assunto; o app.js o conecta ao caminho
 const router = express.Router();
 const TYPES = ["success", "warning", "error", "info"];
 
@@ -18,6 +19,7 @@ router.post("/", asyncHandler(async (req, res) => {
 
 // verifica os documentos que vencem em até 30 dias (ou já vencidos) e cria um aviso para cada um, sem repetir
 router.post("/vencimentos", asyncHandler(async (_req, res) => {
+  // documentos que vencem em até 30 dias (ou já vencidos)
   const { rows } = await query(
     `SELECT obra_id, title, to_char(expiry_date, 'DD/MM/YYYY') AS validade
        FROM documentos_obra
@@ -25,16 +27,19 @@ router.post("/vencimentos", asyncHandler(async (_req, res) => {
   );
   let criadas = 0;
   for (const doc of rows) {
+    // monta o texto do aviso
     const message = `Documento "${doc.title}" vence em ${doc.validade}`;
     // se esse aviso já existe para a obra, não cria de novo
     const { rows: existente } = await query(
       "SELECT 1 FROM notificacoes WHERE obra_id = $1 AND message = $2",
       [doc.obra_id, message]
     );
+    // já existe: pula; senão cria o aviso de alerta
     if (existente.length > 0) continue;
     await insertRow("notificacoes", { type: "warning", message, obraId: doc.obra_id });
     criadas += 1;
   }
+  // diz quantos avisos novos criou
   res.json({ criadas });
 }));
 

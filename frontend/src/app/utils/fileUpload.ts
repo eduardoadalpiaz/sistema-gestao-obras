@@ -24,6 +24,7 @@ async function toDataUrl(blob: Blob, mime: string): Promise<string> {
   for (let i = 0; i < bytes.length; i += 0x8000) {
     binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   }
+  // monta o texto data:tipo;base64,conteúdo
   return `data:${mime};base64,${btoa(binary)}`;
 }
 

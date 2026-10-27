@@ -6,16 +6,19 @@ const { asyncHandler } = require("../middleware/asyncHandler");
 const { requireRole } = require("../middleware/auth");
 const { checkFileField, cleanFileName } = require("../utils/validators");
 
+// roteador deste assunto; o app.js o conecta ao caminho
 const router = express.Router();
 router.use(requireRole("Administrativo", "Engenheiro", "Mestre de Obras", "TI", "Dono"));
 
 // arquivo só em formato permitido; quem enviou vem do login
 function readDocument(body, userId) {
+  // confere tipo, tamanho e conteúdo do arquivo
   const fileError = checkFileField(body.file, "Arquivo");
   if (fileError) return { error: fileError };
   const { uploadedBy, ...rest } = body;
   const data = { ...rest };
   if (body.fileName !== undefined) data.fileName = cleanFileName(body.fileName);
+  // o autor é sempre quem está logado
   if (userId) data.uploadedBy = userId;
   return { data };
 }
@@ -23,6 +26,7 @@ function readDocument(body, userId) {
 router.post("/", asyncHandler(async (req, res) => {
   const { data, error } = readDocument(req.body || {}, req.user.id);
   if (error) return res.status(400).json({ message: error });
+  // grava o documento
   const documento = await insertRow("documentos_obra", data);
   res.json({ documento });
 }));

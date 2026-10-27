@@ -11,6 +11,7 @@ services:
     environment:
       POSTGRES_DB: obras
       POSTGRES_USER: obras
+      # senha própria do banco do staging (recusa subir sem ela)
       POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:?defina STAGING_POSTGRES_PASSWORD no .env}
     volumes:
       - pgdata_staging:/var/lib/postgresql/data
@@ -32,6 +33,7 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://obras:${STAGING_POSTGRES_PASSWORD}@db:5432/obras
       DATABASE_SSL: "false"
+      # segredo próprio do staging (recusa subir sem ele)
       JWT_SECRET: ${STAGING_JWT_SECRET:?defina STAGING_JWT_SECRET no .env}
       CORS_ORIGIN: https://${DOMAIN}:8443
 

@@ -17,6 +17,7 @@ export const getToken = (): string | null => {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
 };
 export const setToken = (token: string) => {
+  // guarda o token no navegador
   try { localStorage.setItem(TOKEN_KEY, token); } catch { /* sem armazenamento: segue sem guardar */ }
 };
 // usuário logado guardado no navegador (só os campos já limpos pelo contexto)
@@ -66,6 +67,7 @@ export async function api<T = unknown>(path: string, opts?: RequestInit): Promis
     ...opts,
     headers: {
       'Content-Type': 'application/json',
+      // se há token, vai no cabeçalho Authorization
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...((opts?.headers as Record<string, string> | undefined) ?? {}),
     },
@@ -73,6 +75,7 @@ export async function api<T = unknown>(path: string, opts?: RequestInit): Promis
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
+    // 401 fora das telas de login: limpa a sessão e volta ao login
     if (res.status === 401 && !PUBLIC_PATHS.includes(path)) {
       // sessão vencida ou usuário desativado: limpa tudo e o sistema volta pro login
       clearSession();

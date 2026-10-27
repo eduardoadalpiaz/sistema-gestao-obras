@@ -6,6 +6,7 @@ const { toSnake, mapRow, mapRows } = require("./utils/caseConvert");
 // Colunas que podem ser gravadas em cada tabela. O que não estiver aqui é descartado
 // antes de montar o SQL (id e datas ficam de fora porque o banco que preenche).
 const COLUMNS = {
+  // colunas que podem ser gravadas em usuários
   usuarios: ["name", "email", "password_hash", "phone", "role", "status", "verified", "verification_code"],
   obras: ["name", "client", "cep", "street", "street_number", "neighborhood", "city", "state", "responsible_id", "status", "progress",
     "start_date", "end_date", "area", "floors", "units", "team_size", "team_members", "estimated_cost",
@@ -21,9 +22,11 @@ const COLUMNS = {
 // Mantém só as colunas permitidas da tabela. Nome de coluna nunca vem direto do usuário pro SQL.
 function pickColumns(table, data) {
   const allowed = COLUMNS[table];
+  // tabela que não está na lista: para tudo com erro
   if (!allowed) throw new Error(`Tabela não permitida: ${table}`);
   const out = {};
   for (const key of Object.keys(data)) {
+    // copia só as colunas permitidas; o resto que o usuário mandou é descartado
     if (allowed.includes(key)) out[key] = data[key];
   }
   return out;
@@ -34,8 +37,10 @@ function pickColumns(table, data) {
 async function selectAll(table, orderBy = "created_at", ascending = true, { limit, offset } = {}) {
   if (!COLUMNS[table]) throw new Error(`Tabela não permitida: ${table}`);
   const dir = ascending ? "ASC" : "DESC";
+  // tabela e orderBy entram como texto, mas vêm sempre do código (nunca do usuário)
   let sql = `SELECT * FROM ${table} ORDER BY ${orderBy} ${dir}`;
   const params = [];
+  // se pediram limite, acrescenta LIMIT e OFFSET (paginação)
   if (limit != null) {
     params.push(limit);
     sql += ` LIMIT $${params.length}`;
@@ -60,9 +65,12 @@ async function insertRow(table, body) {
   const keys = Object.keys(data);
   if (keys.length === 0) throw Object.assign(new Error("Nenhum campo válido para gravar."), { status: 400 });
   const values = Object.values(data);
+  // nomes das colunas: já filtrados pela lista permitida
   const columns = keys.join(", ");
+  // $1, $2...: os valores do usuário vão separados do comando (protege contra SQL injection)
   const placeholders = keys.map((_, i) => `$${i + 1}`).join(", ");
   const { rows } = await query(
+    // monta o INSERT com $1, $2... e devolve a linha gravada
     `INSERT INTO ${table} (${columns}) VALUES (${placeholders}) RETURNING *`,
     values
   );
@@ -80,6 +88,7 @@ async function updateRow(table, id, body) {
   const setClause = keys.map((k, i) => `${k} = $${i + 1}`).join(", ");
   const values = Object.values(data);
   const { rows } = await query(
+    // só os campos enviados mudam, e a data de alteração é atualizada
     `UPDATE ${table} SET ${setClause}, updated_at = now() WHERE id = $${keys.length + 1} RETURNING *`,
     [...values, id]
   );
@@ -105,6 +114,7 @@ async function updateRowNoTimestamp(table, id, body) {
 
 // apaga a linha pelo id
 async function deleteRow(table, id) {
+  // o id também vai por parâmetro, como os demais valores
   await query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 }
 

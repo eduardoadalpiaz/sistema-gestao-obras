@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/documentos', label: 'Documentos',   icon: FolderOpen },
   { to: '/relatorios', label: 'Relatórios',   icon: FileBarChart },
   { to: '/usuarios',   label: 'Usuários',     icon: Users },
+  // item só para TI e Dono
   { to: '/historico',  label: 'Histórico',    icon: History, restrictedTo: ['TI', 'Dono'] as const },
 ];
 
@@ -52,6 +53,7 @@ function NavigationSidebar({ onClose }: { onClose?: () => void }) {
       {/* Links do menu */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {NAV_ITEMS
+          // mostra só os itens sem restrição ou do perfil da pessoa
           .filter(item => !item.restrictedTo || (item.restrictedTo as readonly string[]).includes(activeUser?.role ?? ''))
           .map(({ to, label, icon: Icon }) => (
           <NavLink

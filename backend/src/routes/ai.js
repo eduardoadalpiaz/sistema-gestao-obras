@@ -6,6 +6,7 @@ const { mapRow, mapRows } = require("../utils/caseConvert");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { paraLog } = require("../utils/log");
 
+// roteador deste assunto; o app.js o conecta ao caminho
 const router = express.Router();
 
 // A chave fica só aqui no backend e nunca vai pro navegador. O front chama
@@ -15,10 +16,12 @@ const router = express.Router();
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const GEMINI_TIMEOUT_MS = 20_000;
 
+// rota que pede a análise à IA
 router.post("/analyze-obra", asyncHandler(async (req, res) => {
   const { obraId } = req.body || {};
   if (!obraId) return res.status(400).json({ message: "obraId é obrigatório." });
 
+  // chave lida do .env do servidor
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(503).json({
@@ -27,23 +30,28 @@ router.post("/analyze-obra", asyncHandler(async (req, res) => {
   }
   const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
 
+  // busca a obra pelo id
   const { rows: obraRows } = await query("SELECT * FROM obras WHERE id = $1", [obraId]);
   const obra = mapRow(obraRows[0]);
   if (!obra) return res.status(404).json({ message: "Obra não encontrada." });
 
   const { rows: stageRows } = await query(
+    // etapas da obra, em ordem de início
     "SELECT * FROM etapas WHERE obra_id = $1 ORDER BY planned_start",
     [obraId]
   );
   const etapas = mapRows(stageRows);
 
   const { rows: gastoRows } = await query(
+    // gastos da obra
     "SELECT * FROM despesas_obra WHERE obra_id = $1",
     [obraId]
   );
   const gastos = mapRows(gastoRows);
+  // soma todos os gastos
   const totalGasto = gastos.reduce((sum, g) => sum + Number(g.value || 0), 0);
 
+  // só as etapas com status Atrasada
   const etapasAtrasadas = etapas.filter((e) => e.status === "Atrasada");
 
   // quanto do tempo do cronograma já passou (de hoje entre o início e o término previsto), de 0 a 100
@@ -53,6 +61,7 @@ router.post("/analyze-obra", asyncHandler(async (req, res) => {
     const inicio = new Date(obra.startDate);
     const fim = new Date(obra.endDate);
     if (fim > inicio) {
+      // percentual do prazo que já passou, entre 0 e 100
       percentTempo = Math.min(100, Math.max(0, Math.round(((hoje - inicio) / (fim - inicio)) * 100)));
     }
   }
@@ -114,6 +123,7 @@ Etapas atrasadas: ${etapasAtrasadas.length}${etapasAtrasadas.length ? " (" + eta
     return res.status(502).json({ message: "A IA não retornou uma análise válida." });
   }
 
+  // devolve só o texto pronto
   res.json({ analysis });
 }));
 

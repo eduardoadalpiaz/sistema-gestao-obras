@@ -6,6 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 BACKUP_DIR="${BACKUP_DIR:-backups}"
+# quantos backups guardar (padrão 14)
 KEEP="${KEEP:-14}"
 
 umask 077                                   # só o dono lê os arquivos
@@ -26,6 +27,7 @@ if [ "$(gunzip -c "$PARCIAL" | wc -c)" -eq 0 ]; then
   exit 1
 fi
 
+# só no fim o arquivo ganha o nome final
 mv "$PARCIAL" "$ARQUIVO"
 echo "Backup gravado: $ARQUIVO"
 

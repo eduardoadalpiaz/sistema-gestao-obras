@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- necessário pro gen_random_uuid()
 
 -- Usuario
 CREATE TABLE usuarios (
-  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- id aleatório
   name               VARCHAR(150) NOT NULL,
   email              VARCHAR(150) NOT NULL UNIQUE,
   password_hash      TEXT NOT NULL,
@@ -32,9 +32,10 @@ CREATE TABLE obras (
   neighborhood    VARCHAR(100),
   city            VARCHAR(100),
   state           VARCHAR(2),
-  responsible_id  UUID REFERENCES usuarios(id) ON DELETE SET NULL,
+  responsible_id  UUID REFERENCES usuarios(id) ON DELETE SET NULL, -- usuário apagado deixa o campo vazio
   status          VARCHAR(20) NOT NULL DEFAULT 'Em andamento'
                     CHECK (status IN ('Em andamento','Concluída','Paralisada')),
+  -- progresso só de 0 a 100 (o banco recusa fora disso)
   progress        INTEGER NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
   start_date      DATE,
   end_date        DATE,
@@ -43,7 +44,7 @@ CREATE TABLE obras (
   units           INTEGER,
   team_size       INTEGER,
   team_members    TEXT[] DEFAULT '{}'::text[],
-  estimated_cost  NUMERIC(14,2),
+  estimated_cost  NUMERIC(14,2), -- dinheiro com 2 casas exatas
   client_budget   NUMERIC(14,2),
   tipo            VARCHAR(20) CHECK (tipo IN ('Residencial','Comercial','Industrial','Misto')),
   complexidade    VARCHAR(10) CHECK (complexidade IN ('Baixa','Média','Alta')),
@@ -54,7 +55,7 @@ CREATE TABLE obras (
 -- Etapa
 CREATE TABLE etapas (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  obra_id         UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE,
+  obra_id         UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE, -- apagar a obra apaga as etapas
   name            VARCHAR(150) NOT NULL,
   responsible_id  UUID REFERENCES usuarios(id) ON DELETE SET NULL,
   planned_start   DATE,
@@ -71,8 +72,8 @@ CREATE TABLE etapas (
 -- DespesaObra
 CREATE TABLE despesas_obra (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  obra_id       UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE,
-  etapa_id      UUID REFERENCES etapas(id) ON DELETE SET NULL,
+  obra_id       UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE, -- apagar a obra apaga os gastos
+  etapa_id      UUID REFERENCES etapas(id) ON DELETE SET NULL, -- apagar a etapa mantém o gasto
   description   VARCHAR(200) NOT NULL,
   category      VARCHAR(30) NOT NULL
                   CHECK (category IN ('Materiais','Equipamentos','Mão de obra','Transporte','Serviços','Outros')),
@@ -89,6 +90,7 @@ CREATE TABLE despesas_obra (
 -- DocumentoObra
 CREATE TABLE documentos_obra (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- apagar a obra apaga os documentos
   obra_id       UUID NOT NULL REFERENCES obras(id) ON DELETE CASCADE,
   title         VARCHAR(200) NOT NULL,
   type          VARCHAR(40) NOT NULL CHECK (type IN (
@@ -117,14 +119,15 @@ CREATE TABLE notificacoes (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- HistoricoAlteracao (log de auditoria)
+-- HistoricoAlteracao (log de auditoria: quem fez o quê; só TI e Dono veem)
 CREATE TABLE historico_alteracoes (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-  user_name    VARCHAR(150),
+  user_name    VARCHAR(150), -- cópia do nome de quem fez
   action       VARCHAR(10) NOT NULL CHECK (action IN ('Criou','Editou','Removeu')),
   module       VARCHAR(20) NOT NULL CHECK (module IN ('Obras','Etapas','Despesas','Documentos','Usuários')),
   target_name  VARCHAR(250),
+  -- campo alterado, valor de antes e valor de depois
   field        VARCHAR(60),
   old_value    TEXT,
   new_value    TEXT,

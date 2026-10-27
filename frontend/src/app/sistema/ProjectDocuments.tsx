@@ -118,6 +118,7 @@ export function ProjectDocuments() {
     const file = input.files?.[0];
     if (!file) return;
     try {
+      // reduz a imagem e converte para base64
       const prepared = await prepareUpload(file);
       setDocumentForm(prev => ({ ...prev, file: prepared.dataUrl, fileName: prepared.name }));
     } catch (err) {
@@ -146,6 +147,7 @@ export function ProjectDocuments() {
       uploadedBy: activeUser?.id ?? '',
     };
     if (activeModal === 'add') {
+      // anexa o documento
       await attachDocument(payload);
     } else if (activeModal === 'edit' && selectedDocument) {
       await updateDocument(selectedDocument.id, payload);

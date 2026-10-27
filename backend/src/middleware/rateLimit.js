@@ -2,6 +2,7 @@
 
 // Limite simples: no máximo `max` requisições por janela, por chave (padrão: IP).
 function rateLimit({ windowMs, max, keyFn, message }) {
+  // contadores ficam na memória do processo
   const hits = new Map();
   setInterval(() => {
     const now = Date.now();

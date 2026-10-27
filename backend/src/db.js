@@ -37,6 +37,7 @@ async function query(text, params, attempt = 1) {
     return await pool.query(text, params);
   } catch (err) {
     const isTransient = TRANSIENT_ERROR_CODES.has(err.code);
+    // erro passageiro e menos de 3 tentativas: espera 300, 600, 900 ms
     if (isTransient && attempt <= 3) {
       const delayMs = attempt * 300;
       console.warn(`[db] Falha transitória (${err.code}), tentativa ${attempt}/3 em ${delayMs}ms...`);
@@ -49,6 +50,7 @@ async function query(text, params, attempt = 1) {
 
 // Confere se o banco está respondendo (usado no /health).
 async function checkConnection() {
+  // pergunta simples: se o banco responder, está vivo
   await pool.query("SELECT 1");
 }
 

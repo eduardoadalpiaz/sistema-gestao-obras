@@ -4,6 +4,7 @@ function toCamel(row) {
   if (!row) return row;
   const out = {};
   for (const [k, v] of Object.entries(row)) {
+    // troca _x por X: start_date vira startDate
     out[k.replace(/_([a-z])/g, (_, l) => l.toUpperCase())] = v;
   }
   return out;

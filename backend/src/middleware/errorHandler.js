@@ -21,6 +21,7 @@ function errorHandler(err, req, res, _next) {
   const dataErrors = {
     "23502": [400, "Falta preencher um campo obrigatório."],
     "23503": [400, "Referência inválida: o registro relacionado não existe."],
+    // registro duplicado vira 409
     "23505": [409, "Já existe um registro com esses dados."],
     "23514": [400, "Um dos campos tem um valor não permitido."],
     "22P02": [400, "Identificador ou valor em formato inválido."],
@@ -31,6 +32,7 @@ function errorHandler(err, req, res, _next) {
   };
   if (dataErrors[err.code]) {
     const [status, message] = dataErrors[err.code];
+    // detalhe técnico só no log, não vai para o usuário
     console.error("[erro] detalhe:", String(err.detail || "").slice(0, 200));
     return res.status(status).json({ message });
   }
@@ -39,6 +41,7 @@ function errorHandler(err, req, res, _next) {
   // front saber que é temporário.
   const connectionCodes = { ECONNREFUSED: true, ETIMEDOUT: true, ENOTFOUND: true };
   if (connectionCodes[err.code]) {
+    // banco fora do ar: 503 (temporário)
     return res.status(503).json({ message: "Serviço temporariamente indisponível. Tente novamente em instantes." });
   }
 

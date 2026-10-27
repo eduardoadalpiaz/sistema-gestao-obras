@@ -87,6 +87,7 @@ export function TeamManagement() {
   // O código aparece num modal pro administrador repassar; a pessoa usa ele no primeiro login.
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
+    // cadastra e recebe o código de 6 dígitos
     const verificationCode = await registerTeamMember({
       name:     memberForm.name,
       email:    memberForm.email,
@@ -96,6 +97,7 @@ export function TeamManagement() {
       status:   memberForm.status,
       verified: false,
     });
+    // mostra o código para o administrador repassar
     setNewMemberCode(verificationCode);
     setActiveModal('code');
   };

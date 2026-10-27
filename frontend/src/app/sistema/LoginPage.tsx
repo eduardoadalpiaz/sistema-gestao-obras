@@ -29,6 +29,7 @@ export function LoginPage() {
     e.preventDefault();
     setLoginError('');
     setIsSubmitting(true);
+    // manda e-mail e senha para o servidor
     const result = await login(emailInput.trim(), passwordInput);
     setIsSubmitting(false);
     if (result.success) {
@@ -44,6 +45,7 @@ export function LoginPage() {
   const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setVerificationError('');
+    // confere o código de 6 dígitos
     const result = await verifyAccountCode(verificationCode.trim());
     if (result.success) {
       navigate('/dashboard');
