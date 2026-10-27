@@ -19,28 +19,25 @@ router.post("/", asyncHandler(async (req, res) => {
 
 // verifica os documentos que vencem em até 30 dias (ou já vencidos) e cria um aviso para cada um, sem repetir
 router.post("/vencimentos", asyncHandler(async (_req, res) => {
-  // documentos que vencem em até 30 dias (ou já vencidos)
-  const { rows } = await query(
-    `SELECT obra_id, title, to_char(expiry_date, 'DD/MM/YYYY') AS validade
-       FROM documentos_obra
-      WHERE expiry_date IS NOT NULL AND expiry_date <= CURRENT_DATE + 30`
+  // uma consulta só: monta o aviso de cada documento e grava os que ainda não existem
+  const { rowCount } = await query(
+    `WITH vencendo AS (
+       -- documentos que vencem em até 30 dias (ou já vencidos), com o texto do aviso
+       SELECT DISTINCT obra_id,
+              'Documento "' || title || '" vence em ' || to_char(expiry_date, 'DD/MM/YYYY') AS message
+         FROM documentos_obra
+        WHERE expiry_date IS NOT NULL AND expiry_date <= CURRENT_DATE + 30
+     )
+     INSERT INTO notificacoes (type, message, obra_id)
+     SELECT 'warning', v.message, v.obra_id
+       FROM vencendo v
+      -- se esse aviso já existe para a obra, não cria de novo
+      WHERE NOT EXISTS (
+        SELECT 1 FROM notificacoes n WHERE n.obra_id = v.obra_id AND n.message = v.message
+      )`
   );
-  let criadas = 0;
-  for (const doc of rows) {
-    // monta o texto do aviso
-    const message = `Documento "${doc.title}" vence em ${doc.validade}`;
-    // se esse aviso já existe para a obra, não cria de novo
-    const { rows: existente } = await query(
-      "SELECT 1 FROM notificacoes WHERE obra_id = $1 AND message = $2",
-      [doc.obra_id, message]
-    );
-    // já existe: pula; senão cria o aviso de alerta
-    if (existente.length > 0) continue;
-    await insertRow("notificacoes", { type: "warning", message, obraId: doc.obra_id });
-    criadas += 1;
-  }
   // diz quantos avisos novos criou
-  res.json({ criadas });
+  res.json({ criadas: rowCount });
 }));
 
 // essa rota precisa vir antes da /:id, senão o Express entenderia "mark-all-read" como um id
