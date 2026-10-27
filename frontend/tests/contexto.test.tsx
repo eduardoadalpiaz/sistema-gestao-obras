@@ -340,3 +340,24 @@ describe('gastos, documentos e notificações', () => {
     expect(result.current.teamMembers.map(u => u.id)).not.toContain('u2');
   });
 });
+
+describe('aviso de documento vencendo (RF17)', () => {
+  test('ao entrar, a tela pede a verificação de vencimentos uma vez só', async () => {
+    const { api } = await renderLogado({}, {
+      'POST /notifications/vencimentos': { body: { criadas: 0 } },
+    });
+    await waitFor(() => expect(api.foi('POST /notifications/vencimentos')).toHaveLength(1));
+    // dar tempo de uma segunda chamada acontecer, se houvesse
+    await new Promise(r => setTimeout(r, 50));
+    expect(api.foi('POST /notifications/vencimentos')).toHaveLength(1);
+  });
+
+  test('se a verificação falhar, a tela continua funcionando', async () => {
+    const { result, api } = await renderLogado({ obras: [obra()] }, {
+      'POST /notifications/vencimentos': { status: 500, body: { message: 'erro' } },
+    });
+    await waitFor(() => expect(api.foi('POST /notifications/vencimentos')).toHaveLength(1));
+    expect(result.current.projects).toHaveLength(1);
+    expect(result.current.isSyncConnected).toBe(true);
+  });
+});
