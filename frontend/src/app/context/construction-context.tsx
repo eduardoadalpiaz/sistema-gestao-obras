@@ -413,6 +413,13 @@ export function ConstructionManagementProvider({ children }: { children: ReactNo
     return () => { cancelled = true; };
   }, [activeUser?.id, loadVersion]);
 
+  // Ao entrar, pede ao servidor para criar os avisos de documentos que vencem em até 30 dias.
+  // Só roda quando o usuário muda (não a cada recarga) e, se falhar, a tela segue normal.
+  useEffect(() => {
+    if (!activeUser?.id) return;
+    api('/notifications/vencimentos', { method: 'POST' }).catch(() => {});
+  }, [activeUser?.id]);
+
   // tempo real: o servidor avisa quando algo muda (conexão aberta) e a tela busca /data de novo.
   // O intervalo de 60 s e a volta pra aba servem de reserva se a conexão cair.
   useEffect(() => {
