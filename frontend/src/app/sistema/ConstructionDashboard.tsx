@@ -2,20 +2,22 @@
 import { useState } from 'react';
 import { useConstructionManagement, SystemNotification } from '../context/construction-context';
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer,
 } from 'recharts';
 import {
   Building2, Clock, TrendingUp, AlertTriangle, Bell, CheckCircle2,
   Info, AlertCircle, X, Eye,
 } from 'lucide-react';
+import { nomeNoGrafico, dadosPlanejadoRealizado } from '../utils/dashboard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function ConstructionDashboard() {
   const {
     projects, scheduleStages, systemNotifications,
-    getScheduleStatus, markNotificationRead, markAllNotificationsRead,
+    getScheduleStatus, calculateExpectedProgress, calculateProjectProgress,
+    markNotificationRead, markAllNotificationsRead,
   } = useConstructionManagement();
 
   const [selectedNotification, setSelectedNotification] = useState<SystemNotification | null>(null);
@@ -36,19 +38,12 @@ export function ConstructionDashboard() {
   // Dados dos gráficos
 
   const projectProgressChartData = projects.map((p, index) => ({
-    name: `${index + 1}. ${p.name.length > 17 ? p.name.substring(0, 15) + '…' : p.name}`,
+    name: nomeNoGrafico(p.name, index),
     progresso: p.progress,
   }));
 
-  // dados do gráfico de tendência planejado x real
-  const monthLabels    = ['Set', 'Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar'];
-  const plannedTrend   = [8, 18, 30, 42, 55, 65, 75];
-  const actualTrend    = [5, 14, 24, 36, 48, 56, averageProgressPct];
-  const trendChartData = monthLabels.map((month, i) => ({
-    month,
-    Planejado: plannedTrend[i],
-    Realizado: actualTrend[i],
-  }));
+  // dados do gráfico planejado x realizado: por obra, quanto do prazo já passou e quanto foi feito
+  const plannedVsActualData = dadosPlanejadoRealizado(projects, calculateExpectedProgress, calculateProjectProgress);
 
   // Relatório de etapas atrasadas
 
@@ -65,6 +60,9 @@ export function ConstructionDashboard() {
       const riskLevel    = daysOverdue > 20 ? 'Alto' : daysOverdue > 10 ? 'Médio' : 'Baixo';
       return { ...stage, projectName: project?.name ?? '—', daysOverdue, riskLevel };
     });
+
+  // atrasos críticos: etapas com mais de 20 dias de atraso (risco Alto)
+  const criticalAlertCount = delayedStageRows.filter(r => r.riskLevel === 'Alto').length;
 
   // Funções de renderização
 
@@ -108,7 +106,7 @@ export function ConstructionDashboard() {
     {
       label: 'Obras Ativas',
       value: activeProjectCount,
-      subtext: '+2 este mês',
+      subtext: `de ${projects.length} obras`,
       icon: Building2,
       colorClass: 'bg-blue-500',
       lightClass: 'bg-blue-50',
@@ -116,7 +114,7 @@ export function ConstructionDashboard() {
     {
       label: 'Obras Atrasadas',
       value: delayedProjectCount,
-      subtext: '-1 vs mês anterior',
+      subtext: `${activeProjectCount - delayedProjectCount} no prazo`,
       icon: Clock,
       colorClass: 'bg-red-500',
       lightClass: 'bg-red-50',
@@ -124,7 +122,7 @@ export function ConstructionDashboard() {
     {
       label: 'Avanço Médio',
       value: `${averageProgressPct}%`,
-      subtext: '+5% este mês',
+      subtext: `média de ${projects.length} obras`,
       icon: TrendingUp,
       colorClass: 'bg-green-500',
       lightClass: 'bg-green-50',
@@ -132,7 +130,7 @@ export function ConstructionDashboard() {
     {
       label: 'Alertas de Risco',
       value: riskAlertCount,
-      subtext: `${riskAlertCount} críticos`,
+      subtext: `${criticalAlertCount} críticos`,
       icon: AlertTriangle,
       colorClass: 'bg-orange-500',
       lightClass: 'bg-orange-50',
@@ -187,27 +185,20 @@ export function ConstructionDashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Tendência planejado x real */}
+        {/* Planejado x realizado por obra */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="font-black text-[#1a2332] text-lg mb-5">Planejado vs Realizado</h2>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={trendChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid key="line-grid" strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis key="line-xaxis" dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis key="line-yaxis" domain={[0, 100]} tick={{ fontSize: 11 }} tickFormatter={v => `${v}`} />
-              <Tooltip key="line-tooltip" formatter={(v) => [`${v}%`]} />
-              <Line key="line-planejado" type="monotone" dataKey="Planejado" stroke="#E8821A" strokeWidth={2} dot={false} strokeDasharray="5 5" isAnimationActive={false} />
-              <Line key="line-realizado" type="monotone" dataKey="Realizado" stroke="#3B82F6" strokeWidth={2.5} dot={{ r: 4, fill: '#3B82F6' }} isAnimationActive={false} />
-            </LineChart>
+            <BarChart data={plannedVsActualData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <CartesianGrid key="pr-grid" strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis key="pr-xaxis" dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis key="pr-yaxis" domain={[0, 100]} tick={{ fontSize: 11 }} tickFormatter={v => `${v}%`} />
+              <Tooltip key="pr-tooltip" formatter={(v) => [`${v}%`]} />
+              <Legend key="pr-legend" />
+              <Bar key="pr-planejado" dataKey="Planejado" fill="#E8821A" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+              <Bar key="pr-realizado" dataKey="Realizado" fill="#3B82F6" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+            </BarChart>
           </ResponsiveContainer>
-          <div className="flex gap-6 mt-3 justify-end">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <div className="w-6 h-0.5 border-dashed border-t-2 border-[#E8821A]" /> Planejado
-            </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <div className="w-6 h-0.5 bg-blue-500" /> Realizado
-            </div>
-          </div>
         </div>
       </div>
 
