@@ -61,7 +61,7 @@ function ProgressComparisonBar({
   return (
     <div className="min-w-[130px] space-y-1">
       <div className="flex items-center gap-1.5">
-        <span className="text-[10px] text-gray-400 w-14 shrink-0">Real</span>
+        <span className="text-[10px] text-gray-500 w-14 shrink-0">Real</span>
         <div className="flex-1 bg-gray-100 rounded-full h-2">
           <div
             className="h-2 rounded-full transition-all bg-green-500"
@@ -71,14 +71,14 @@ function ProgressComparisonBar({
         <span className="text-xs font-bold text-gray-700 w-7 text-right">{actualProgress}%</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="text-[10px] text-gray-400 w-14 shrink-0">Planejado</span>
+        <span className="text-[10px] text-gray-500 w-14 shrink-0">Planejado</span>
         <div className="flex-1 bg-gray-100 rounded-full h-2">
           <div
             className="h-2 rounded-full transition-all bg-blue-300"
             style={{ width: `${Math.min(100, expectedProgress)}%` }}
           />
         </div>
-        <span className={`text-xs font-bold w-7 text-right ${isOnSchedule ? 'text-blue-500' : 'text-red-500'}`}>
+        <span className={`text-xs font-bold w-7 text-right ${isOnSchedule ? 'text-blue-700' : 'text-red-700'}`}>
           {expectedProgress}%
         </span>
       </div>
@@ -331,7 +331,7 @@ export function Projects() {
         {canEditProjects && (
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 bg-[#E8821A] text-white font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm"
+            className="flex items-center gap-2 bg-[#E8821A] text-gray-900 font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm"
           >
             <Plus size={16} /> Nova Obra
           </button>
@@ -341,7 +341,7 @@ export function Projects() {
       {/* Busca e filtro */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -379,7 +379,7 @@ export function Projects() {
           <tbody className="divide-y divide-gray-50">
             {filteredProjects.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-12 text-gray-400">
+                <td colSpan={7} className="text-center py-12 text-gray-500">
                   Nenhuma obra encontrada
                 </td>
               </tr>
@@ -391,15 +391,15 @@ export function Projects() {
                 <tr key={project.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="font-bold text-[#1a2332]">{project.name}</div>
-                    <div className="text-gray-400 text-xs mt-0.5">
+                    <div className="text-gray-500 text-xs mt-0.5">
                       {resolveResponsibleName(project.responsibleId)}
                     </div>
                     {project.floors && project.teamSize && (
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-gray-300 flex items-center gap-0.5">
+                        <span className="text-[10px] text-gray-500 flex items-center gap-0.5">
                           <Layers size={10} /> {project.floors}pav
                         </span>
-                        <span className="text-[10px] text-gray-300 flex items-center gap-0.5">
+                        <span className="text-[10px] text-gray-500 flex items-center gap-0.5">
                           <Users size={10} /> {project.teamSize} pess.
                         </span>
                       </div>
@@ -421,24 +421,24 @@ export function Projects() {
                     {new Date(project.endDate + 'T12:00:00').toLocaleDateString('pt-BR')}
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`text-xs font-bold ${scheduleStatus === 'No Prazo' ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`text-xs font-bold ${scheduleStatus === 'No Prazo' ? 'text-green-700' : 'text-red-600'}`}>
                       {scheduleStatus}
                     </span>
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => openViewModal(project)} className="text-blue-500 hover:text-blue-700 transition" title="Ver">
+                      <button onClick={() => openViewModal(project)} className="text-blue-700 hover:text-blue-700 transition" title="Ver">
                         <Eye size={16} />
                       </button>
-                      <button onClick={() => navigateToSchedule(project.id)} className="text-purple-500 hover:text-purple-700 transition" title="Cronograma">
+                      <button onClick={() => navigateToSchedule(project.id)} className="text-purple-700 hover:text-purple-700 transition" title="Cronograma">
                         <Calendar size={16} />
                       </button>
                       {canEditProjects && (
                         <>
-                          <button onClick={() => openEditModal(project)} className="text-orange-500 hover:text-orange-700 transition" title="Editar">
+                          <button onClick={() => openEditModal(project)} className="text-orange-700 hover:text-orange-700 transition" title="Editar">
                             <Pencil size={16} />
                           </button>
-                          <button onClick={() => openDeleteModal(project)} className="text-red-500 hover:text-red-700 transition" title="Excluir">
+                          <button onClick={() => openDeleteModal(project)} className="text-red-700 hover:text-red-700 transition" title="Excluir">
                             <Trash2 size={16} />
                           </button>
                         </>
@@ -455,7 +455,7 @@ export function Projects() {
       {/* Cards (celular) */}
       <div className="md:hidden space-y-3">
         {filteredProjects.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-gray-400 border border-gray-100 shadow-sm">
+          <div className="bg-white rounded-2xl p-8 text-center text-gray-500 border border-gray-100 shadow-sm">
             Nenhuma obra encontrada
           </div>
         ) : filteredProjects.map(project => {
@@ -467,7 +467,7 @@ export function Projects() {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0 mr-3">
                   <div className="font-bold text-[#1a2332] truncate">{project.name}</div>
-                  <div className="text-gray-400 text-xs mt-0.5">
+                  <div className="text-gray-500 text-xs mt-0.5">
                     {resolveResponsibleName(project.responsibleId)}
                   </div>
                 </div>
@@ -478,28 +478,28 @@ export function Projects() {
               <div className="text-gray-600 text-sm mb-3">{project.client}</div>
               <ProgressComparisonBar actualProgress={actualProgress} expectedProgress={expectedProgress} />
               <div className="flex items-center justify-between text-xs mt-3">
-                <div className="text-gray-400">
+                <div className="text-gray-500">
                   Término: <span className="font-semibold text-gray-600">
                     {new Date(project.endDate + 'T12:00:00').toLocaleDateString('pt-BR')}
                   </span>
                 </div>
-                <span className={`font-bold ${scheduleStatus === 'No Prazo' ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`font-bold ${scheduleStatus === 'No Prazo' ? 'text-green-700' : 'text-red-600'}`}>
                   {scheduleStatus}
                 </span>
               </div>
               <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
-                <button onClick={() => openViewModal(project)} className="flex items-center gap-1.5 text-blue-500 text-xs font-semibold hover:text-blue-700 transition">
+                <button onClick={() => openViewModal(project)} className="flex items-center gap-1.5 text-blue-700 text-xs font-semibold hover:text-blue-700 transition">
                   <Eye size={14} /> Ver
                 </button>
-                <button onClick={() => navigateToSchedule(project.id)} className="flex items-center gap-1.5 text-purple-500 text-xs font-semibold hover:text-purple-700 transition">
+                <button onClick={() => navigateToSchedule(project.id)} className="flex items-center gap-1.5 text-purple-700 text-xs font-semibold hover:text-purple-700 transition">
                   <Calendar size={14} /> Cronograma
                 </button>
                 {canEditProjects && (
                   <>
-                    <button onClick={() => openEditModal(project)} className="flex items-center gap-1.5 text-orange-500 text-xs font-semibold hover:text-orange-700 transition">
+                    <button onClick={() => openEditModal(project)} className="flex items-center gap-1.5 text-orange-700 text-xs font-semibold hover:text-orange-700 transition">
                       <Pencil size={14} /> Editar
                     </button>
-                    <button onClick={() => openDeleteModal(project)} className="flex items-center gap-1.5 text-red-500 text-xs font-semibold hover:text-red-700 transition ml-auto">
+                    <button onClick={() => openDeleteModal(project)} className="flex items-center gap-1.5 text-red-700 text-xs font-semibold hover:text-red-700 transition ml-auto">
                       <Trash2 size={14} /> Excluir
                     </button>
                   </>
@@ -518,7 +518,7 @@ export function Projects() {
               <h2 className="text-xl font-black text-[#1a2332]">
                 {activeModal === 'add' ? 'Nova Obra' : 'Editar Obra'}
               </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-600">
                 <X size={20} />
               </button>
             </div>
@@ -527,7 +527,7 @@ export function Projects() {
 
               {/* Identificação */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Identificação</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Identificação</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="projects-campo-1" className="block text-sm font-semibold text-gray-700 mb-1">Nome da Obra *</label>
@@ -561,7 +561,7 @@ export function Projects() {
 
               {/* Endereço */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Endereço</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Endereço</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="projects-campo-5" className="block text-sm font-semibold text-gray-700 mb-1">CEP *</label>
@@ -571,14 +571,14 @@ export function Projects() {
                         <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[#E8821A]" />
                       )}
                     </div>
-                    {postalCodeError && <p className="text-red-500 text-xs mt-1">{postalCodeError}</p>}
+                    {postalCodeError && <p className="text-red-700 text-xs mt-1">{postalCodeError}</p>}
                   </div>
                   <div>
                     <label htmlFor="projects-campo-6" className="block text-sm font-semibold text-gray-700 mb-1">Rua *</label>
                     <input id="projects-campo-6" name="street" value={projectForm.street} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                   <div>
-                    <label htmlFor="projects-campo-7" className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="font-normal text-gray-400">(opcional)</span></label>
+                    <label htmlFor="projects-campo-7" className="block text-sm font-semibold text-gray-700 mb-1">Número <span className="font-normal text-gray-500">(opcional)</span></label>
                     <input id="projects-campo-7" name="streetNumber" value={projectForm.streetNumber ?? ''} onChange={handleFieldChange} maxLength={20} placeholder="Ex.: 123 ou s/n" className={baseInputClass} />
                   </div>
                   <div>
@@ -598,7 +598,7 @@ export function Projects() {
 
               {/* Tipo e Complexidade */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Classificação da Obra</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Classificação da Obra</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="projects-campo-11" className="block text-sm font-semibold text-gray-700 mb-1">Tipo de Obra</label>
@@ -619,7 +619,7 @@ export function Projects() {
 
               {/* Características técnicas (entradas da previsão de prazo) */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                   Características Técnicas
                   <span className="ml-2 text-[#E8821A] normal-case font-normal">(usadas para calcular prazo estimado)</span>
                 </p>
@@ -657,7 +657,7 @@ export function Projects() {
                   <div className="flex items-center justify-between mb-2">
                     <label htmlFor="projects-campo-17" className="block text-sm font-semibold text-gray-700 flex items-center gap-1">
                       <Users size={13} className="text-[#E8821A]" /> Nomes da equipe
-                      <span className="text-gray-400 font-normal text-xs ml-1">(opcional)</span>
+                      <span className="text-gray-500 font-normal text-xs ml-1">(opcional)</span>
                     </label>
                     <button type="button" onClick={addTeamMemberName}
                       className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
@@ -665,7 +665,7 @@ export function Projects() {
                     </button>
                   </div>
                   {(projectForm.teamMembers ?? []).length === 0 ? (
-                    <p className="text-xs text-gray-400">Nenhum nome adicionado.</p>
+                    <p className="text-xs text-gray-500">Nenhum nome adicionado.</p>
                   ) : (
                     <div className="space-y-2">
                       {(projectForm.teamMembers ?? []).map((memberName, index) => (
@@ -674,7 +674,7 @@ export function Projects() {
                             onChange={e => updateTeamMemberName(index, e.target.value)}
                             placeholder={`Nome do integrante ${index + 1}`} className={baseInputClass} />
                           <button type="button" onClick={() => removeTeamMemberName(index)}
-                            title="Remover nome" className="text-gray-400 hover:text-red-500 transition shrink-0">
+                            title="Remover nome" className="text-gray-500 hover:text-red-700 transition shrink-0">
                             <X size={16} />
                           </button>
                         </div>
@@ -686,7 +686,7 @@ export function Projects() {
 
               {/* Datas e previsão de prazo */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Prazo</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Prazo</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="projects-campo-18" className="block text-sm font-semibold text-gray-700 mb-1">Data de Início *</label>
@@ -716,11 +716,11 @@ export function Projects() {
                         </p>
                         <p className="text-blue-700 text-sm font-semibold mt-0.5">
                           {deadlinePrediction.date}
-                          <span className="font-normal text-blue-500 ml-1">
+                          <span className="font-normal text-blue-700 ml-1">
                             ({deadlinePrediction.days} dias)
                           </span>
                         </p>
-                        <p className="text-blue-500 text-xs mt-0.5">
+                        <p className="text-blue-700 text-xs mt-0.5">
                           {deadlinePrediction.isFallback
                             ? 'Baseado na média da construção civil brasileira (~0,52 dias/m²)'
                             : `Baseado em ${deadlinePrediction.basedOn} obra${deadlinePrediction.basedOn > 1 ? 's' : ''} concluída${deadlinePrediction.basedOn > 1 ? 's' : ''}`}
@@ -741,7 +741,7 @@ export function Projects() {
                 )}
 
                 {!deadlinePrediction && projectForm.area && projectForm.startDate && (
-                  <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-2 text-gray-400 text-xs">
+                  <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center gap-2 text-gray-500 text-xs">
                     <Lightbulb size={14} />
                     Preencha Área e Data de Início para ver a sugestão de prazo.
                   </div>
@@ -750,7 +750,7 @@ export function Projects() {
 
               {/* Orçamento */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Financeiro</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Financeiro</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="projects-campo-20" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
@@ -761,7 +761,7 @@ export function Projects() {
                   </div>
                   <div>
                     <label htmlFor="projects-campo-21" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                      <DollarSign size={13} className="text-gray-400" /> Valor Disponível do Cliente (R$)
+                      <DollarSign size={13} className="text-gray-500" /> Valor Disponível do Cliente (R$)
                     </label>
                     <input id="projects-campo-21" type="number" name="clientBudget" value={projectForm.clientBudget ?? ''} onChange={handleFieldChange}
                       min={0} placeholder="Ex: 450000" className={baseInputClass} />
@@ -775,7 +775,7 @@ export function Projects() {
                   Cancelar
                 </button>
                 <button type="submit"
-                  className="flex-1 bg-[#E8821A] text-white font-bold py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm">
+                  className="flex-1 bg-[#E8821A] text-gray-900 font-bold py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm">
                   {activeModal === 'add' ? 'Adicionar Obra' : 'Salvar Alterações'}
                 </button>
               </div>
@@ -804,7 +804,7 @@ export function Projects() {
             <div className="bg-white rounded-2xl w-full max-w-lg my-8 p-7 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-black text-[#1a2332]">Detalhes da Obra</h2>
-                <button onClick={closeModal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+                <button onClick={closeModal} className="text-gray-500 hover:text-gray-600"><X size={20} /></button>
               </div>
 
               {/* Resumo do progresso (fundo escuro) */}
@@ -813,7 +813,7 @@ export function Projects() {
                 <div className="space-y-2">
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Progresso Real</span>
+                      <span className="text-gray-500">Progresso Real</span>
                       <span className="text-white font-bold">{actualProgress}%</span>
                     </div>
                     <div className="h-2.5 bg-white/10 rounded-full">
@@ -822,7 +822,7 @@ export function Projects() {
                   </div>
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Progresso Planejado (hoje)</span>
+                      <span className="text-gray-500">Progresso Planejado (hoje)</span>
                       <span className={`font-bold ${progressDelta >= -12 ? 'text-blue-300' : 'text-red-400'}`}>
                         {expectedProgress}%
                       </span>
@@ -855,7 +855,7 @@ export function Projects() {
                   { label: 'Responsável',      value: resolveResponsibleName(selectedProject.responsibleId) },
                 ].map(item => (
                   <div key={item.label} className="bg-gray-50 rounded-xl p-3">
-                    <div className="text-gray-400 text-xs">{item.label}</div>
+                    <div className="text-gray-500 text-xs">{item.label}</div>
                     <div className="font-semibold text-[#1a2332] text-sm">{item.value}</div>
                   </div>
                 ))}
@@ -864,13 +864,13 @@ export function Projects() {
               {/* Características técnicas */}
               <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="bg-gray-50 rounded-xl p-3">
-                  <div className="text-gray-400 text-xs mb-1 flex items-center gap-1"><Ruler size={11} /> Área</div>
+                  <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Ruler size={11} /> Área</div>
                   <div className="font-semibold text-[#1a2332] text-sm">
                     {selectedProject.area ? `${selectedProject.area.toLocaleString('pt-BR')} m²` : '—'}
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-3">
-                  <div className="text-gray-400 text-xs mb-1 flex items-center gap-1"><Layers size={11} /> Pavimentos</div>
+                  <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Layers size={11} /> Pavimentos</div>
                   <div className="font-semibold text-[#1a2332] text-sm">{selectedProject.floors ?? '—'}</div>
                 </div>
                 <div
@@ -879,7 +879,7 @@ export function Projects() {
                   onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowTeamNames(v => !v); } }}
                   title="Clique para ver os nomes da equipe"
                   className={`rounded-xl p-3 cursor-pointer transition border ${showTeamNames ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-transparent hover:bg-gray-100'}`}>
-                  <div className="text-gray-400 text-xs mb-1 flex items-center gap-1">
+                  <div className="text-gray-500 text-xs mb-1 flex items-center gap-1">
                     <Users size={11} /> Equipe
                     <ChevronRight size={11} className={`ml-auto transition-transform ${showTeamNames ? 'rotate-90' : ''}`} />
                   </div>
@@ -911,13 +911,13 @@ export function Projects() {
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   {selectedProject.tipo && (
                     <div className="bg-gray-50 rounded-xl p-3">
-                      <div className="text-gray-400 text-xs mb-1">Tipo de Obra</div>
+                      <div className="text-gray-500 text-xs mb-1">Tipo de Obra</div>
                       <div className="font-semibold text-[#1a2332] text-sm">{selectedProject.tipo}</div>
                     </div>
                   )}
                   {selectedProject.complexidade && (
                     <div className="bg-gray-50 rounded-xl p-3">
-                      <div className="text-gray-400 text-xs mb-1">Complexidade</div>
+                      <div className="text-gray-500 text-xs mb-1">Complexidade</div>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${COMPLEXIDADE_COLORS[selectedProject.complexidade]}`}>
                         {selectedProject.complexidade}
                       </span>
@@ -929,12 +929,12 @@ export function Projects() {
               {/* Endereço */}
               <div className="bg-gray-50 rounded-xl p-3 mb-3">
                 <div className="flex items-center justify-between mb-1">
-                  <div className="text-gray-400 text-xs flex items-center gap-1"><MapPin size={12} /> Endereço</div>
+                  <div className="text-gray-500 text-xs flex items-center gap-1"><MapPin size={12} /> Endereço</div>
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${selectedProject.street}${selectedProject.streetNumber ? ', ' + selectedProject.streetNumber : ''}, ${selectedProject.neighborhood}, ${selectedProject.city}, ${selectedProject.state}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[10px] text-blue-500 hover:text-blue-700 font-semibold transition"
+                    className="flex items-center gap-1 text-[10px] text-blue-700 hover:text-blue-700 font-semibold transition"
                   >
                     <ExternalLink size={11} /> Abrir no Google Maps
                   </a>
@@ -967,7 +967,7 @@ export function Projects() {
                   </div>
                 </div>
                 <div className={`rounded-xl p-3 border ${totalExpenses > (selectedProject.estimatedCost ?? Infinity) ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
-                  <div className="text-gray-400 text-xs mb-1 flex items-center gap-1"><DollarSign size={12} /> Gasto Real</div>
+                  <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><DollarSign size={12} /> Gasto Real</div>
                   <div className={`font-bold text-sm ${totalExpenses > (selectedProject.estimatedCost ?? Infinity) ? 'text-red-600' : 'text-green-700'}`}>
                     {formatCurrency(totalExpenses)}
                   </div>
@@ -982,7 +982,7 @@ export function Projects() {
                   </div>
                   <div className="font-bold text-[#1a2332] text-sm">
                     {prediction.date}
-                    <span className="text-gray-400 font-normal text-xs ml-1">
+                    <span className="text-gray-500 font-normal text-xs ml-1">
                       ({prediction.days} dias · {prediction.basedOn} obra{prediction.basedOn !== 1 ? 's' : ''} analisada{prediction.basedOn !== 1 ? 's' : ''})
                     </span>
                   </div>
@@ -992,7 +992,7 @@ export function Projects() {
               {/* Análise Inteligente (Gemini, via backend) */}
               <div className="border border-purple-100 bg-purple-50 rounded-xl p-3 mb-3">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-purple-500 text-xs font-semibold flex items-center gap-1">
+                  <div className="text-purple-700 text-xs font-semibold flex items-center gap-1">
                     <Sparkles size={12} /> Análise Inteligente
                   </div>
                   <button type="button" onClick={() => handleGenerateAnalysis(selectedProject.id)} disabled={aiLoading}
@@ -1028,7 +1028,7 @@ export function Projects() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={24} className="text-red-500" />
+              <Trash2 size={24} className="text-red-700" />
             </div>
             <h2 className="text-xl font-black text-[#1a2332] mb-2">Excluir Obra</h2>
             <p className="text-gray-500 text-sm mb-6">

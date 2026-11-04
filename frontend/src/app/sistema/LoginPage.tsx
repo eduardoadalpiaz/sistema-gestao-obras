@@ -74,7 +74,7 @@ export function LoginPage() {
               <div>
                 <label htmlFor="loginpage-campo-1" className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                   <input id="loginpage-campo-1"
                     type="email"
                     value={emailInput}
@@ -89,7 +89,7 @@ export function LoginPage() {
               <div>
                 <label htmlFor="loginpage-campo-2" className="block text-sm font-semibold text-gray-700 mb-1.5">Senha</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                   <input id="loginpage-campo-2"
                     type={showPassword ? 'text' : 'password'}
                     value={passwordInput}
@@ -102,7 +102,7 @@ export function LoginPage() {
                     type="button"
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                     onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -125,7 +125,7 @@ export function LoginPage() {
                   : 'Entrar'}
               </button>
 
-              <p className="text-center text-xs text-blue-500 mt-2">
+              <p className="text-center text-xs text-blue-700 mt-2">
                 Acesso restrito a usuários cadastrados pela empresa.
               </p>
               <p className="text-center text-xs mt-1">

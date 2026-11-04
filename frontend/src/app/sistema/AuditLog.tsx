@@ -67,7 +67,7 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
 
         {/* Alvo */}
         <div className="flex-1 min-w-0">
-          <span className="text-sm text-gray-300 truncate block">{entry.targetName}</span>
+          <span className="text-sm text-gray-500 truncate block">{entry.targetName}</span>
           {entry.field && !expanded && (
             <span className="text-[11px] text-gray-600">campo: {entry.field}</span>
           )}
@@ -92,7 +92,7 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
             {entry.field && (
               <div>
                 <span className="text-gray-600 block mb-0.5">Campo</span>
-                <span className="text-gray-300 font-semibold">{entry.field}</span>
+                <span className="text-gray-500 font-semibold">{entry.field}</span>
               </div>
             )}
             {entry.oldValue !== undefined && (
@@ -109,11 +109,11 @@ function EntryRow({ entry }: { entry: AuditEntry }) {
             )}
             <div className="sm:hidden">
               <span className="text-gray-600 block mb-0.5">Usuário</span>
-              <span className="text-gray-300">{entry.userName}</span>
+              <span className="text-gray-500">{entry.userName}</span>
             </div>
             <div className="sm:hidden">
               <span className="text-gray-600 block mb-0.5">Data</span>
-              <span className="text-gray-300">{formatDate(entry.createdAt)}</span>
+              <span className="text-gray-500">{formatDate(entry.createdAt)}</span>
             </div>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function AuditLog() {
   if (!activeUser || !allowedRoles.includes(activeUser.role)) {
     return (
       <div className="max-w-lg mx-auto text-center py-20">
-        <History size={40} className="mx-auto mb-4 text-gray-300" />
+        <History size={40} className="mx-auto mb-4 text-gray-500" />
         <h1 className="text-lg font-black text-[#1a2332] mb-2">Acesso restrito</h1>
         <p className="text-gray-500 text-sm">
           O Histórico de Alterações é uma área de auditoria, disponível apenas para os

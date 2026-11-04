@@ -148,7 +148,7 @@ export function TeamManagement() {
         {isAdministrator && (
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 bg-[#E8821A] text-white font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm"
+            className="flex items-center gap-2 bg-[#E8821A] text-gray-900 font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm"
           >
             <Plus size={16} /> Novo Usuário
           </button>
@@ -168,13 +168,13 @@ export function TeamManagement() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">
-              <th className="text-left text-gray-400 font-semibold px-6 py-4">Nome</th>
-              <th className="text-left text-gray-400 font-semibold px-4 py-4">Email Corporativo</th>
-              <th className="text-left text-gray-400 font-semibold px-4 py-4">Cargo</th>
-              <th className="text-left text-gray-400 font-semibold px-4 py-4">Status</th>
-              <th className="text-left text-gray-400 font-semibold px-4 py-4">Verificado</th>
+              <th className="text-left text-gray-500 font-semibold px-6 py-4">Nome</th>
+              <th className="text-left text-gray-500 font-semibold px-4 py-4">Email Corporativo</th>
+              <th className="text-left text-gray-500 font-semibold px-4 py-4">Cargo</th>
+              <th className="text-left text-gray-500 font-semibold px-4 py-4">Status</th>
+              <th className="text-left text-gray-500 font-semibold px-4 py-4">Verificado</th>
               {isAdministrator && (
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Ações</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Ações</th>
               )}
             </tr>
           </thead>
@@ -183,7 +183,7 @@ export function TeamManagement() {
               <tr key={member.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="font-bold text-[#1a2332]">{member.name}</div>
-                  <div className="text-gray-400 text-xs">{member.phone || '—'}</div>
+                  <div className="text-gray-500 text-xs">{member.phone || '—'}</div>
                 </td>
                 <td className="px-4 py-4 text-gray-500 text-xs">{member.email.toLowerCase()}</td>
                 <td className="px-4 py-4">
@@ -200,12 +200,12 @@ export function TeamManagement() {
                 </td>
                 <td className="px-4 py-4">
                   {member.verified ? (
-                    <span className="flex items-center gap-1 text-xs text-green-600 font-semibold">
+                    <span className="flex items-center gap-1 text-xs text-green-700 font-semibold">
                       <ShieldCheck size={14} /> Verificado
                     </span>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-orange-500 font-semibold">Pendente</span>
+                      <span className="text-xs text-orange-700 font-semibold">Pendente</span>
                       {isAdministrator && member.verificationCode && (
                         <button
                           onClick={() => openVerificationCodeModal(member)}
@@ -221,18 +221,18 @@ export function TeamManagement() {
                 {isAdministrator && (
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => openEditModal(member)} className="text-orange-500 hover:text-orange-700 transition" title="Editar">
+                      <button onClick={() => openEditModal(member)} className="text-orange-700 hover:text-orange-700 transition" title="Editar">
                         <Pencil size={16} />
                       </button>
                       <button
                         onClick={() => toggleMemberStatus(member)}
-                        className={`transition ${member.status === 'Ativo' ? 'text-yellow-500 hover:text-yellow-700' : 'text-green-500 hover:text-green-700'}`}
+                        className={`transition ${member.status === 'Ativo' ? 'text-yellow-700 hover:text-yellow-700' : 'text-green-500 hover:text-green-700'}`}
                         title={member.status === 'Ativo' ? 'Desativar' : 'Ativar'}
                       >
                         {member.status === 'Ativo' ? <UserX size={16} /> : <UserCheck size={16} />}
                       </button>
                       {member.id !== activeUser?.id && (
-                        <button onClick={() => openDeleteModal(member)} className="text-red-500 hover:text-red-700 transition" title="Excluir">
+                        <button onClick={() => openDeleteModal(member)} className="text-red-700 hover:text-red-700 transition" title="Excluir">
                           <Trash2 size={16} />
                         </button>
                       )}
@@ -252,7 +252,7 @@ export function TeamManagement() {
             <div className="flex items-start justify-between mb-2">
               <div>
                 <div className="font-bold text-[#1a2332]">{member.name}</div>
-                <div className="text-gray-400 text-xs mt-0.5">{member.email}</div>
+                <div className="text-gray-500 text-xs mt-0.5">{member.email}</div>
               </div>
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getRoleBadgeClasses(member.role)}`}>
                 {member.role}
@@ -263,19 +263,19 @@ export function TeamManagement() {
                 {member.status}
               </span>
               {member.verified
-                ? <span className="text-xs text-green-600 font-semibold flex items-center gap-0.5"><ShieldCheck size={12} /> Verificado</span>
-                : <span className="text-xs text-orange-500 font-semibold">Pendente</span>}
+                ? <span className="text-xs text-green-700 font-semibold flex items-center gap-0.5"><ShieldCheck size={12} /> Verificado</span>
+                : <span className="text-xs text-orange-700 font-semibold">Pendente</span>}
             </div>
             {isAdministrator && (
               <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-                <button onClick={() => openEditModal(member)} className="flex items-center gap-1 text-xs text-orange-500 font-semibold">
+                <button onClick={() => openEditModal(member)} className="flex items-center gap-1 text-xs text-orange-700 font-semibold">
                   <Pencil size={13} /> Editar
                 </button>
-                <button onClick={() => toggleMemberStatus(member)} className={`flex items-center gap-1 text-xs font-semibold ${member.status === 'Ativo' ? 'text-yellow-500' : 'text-green-500'}`}>
+                <button onClick={() => toggleMemberStatus(member)} className={`flex items-center gap-1 text-xs font-semibold ${member.status === 'Ativo' ? 'text-yellow-700' : 'text-green-500'}`}>
                   {member.status === 'Ativo' ? <><UserX size={13} /> Desativar</> : <><UserCheck size={13} /> Ativar</>}
                 </button>
                 {member.id !== activeUser?.id && (
-                  <button onClick={() => openDeleteModal(member)} className="flex items-center gap-1 text-xs text-red-500 font-semibold ml-auto">
+                  <button onClick={() => openDeleteModal(member)} className="flex items-center gap-1 text-xs text-red-700 font-semibold ml-auto">
                     <Trash2 size={13} /> Excluir
                   </button>
                 )}
@@ -293,7 +293,7 @@ export function TeamManagement() {
               <h2 className="text-xl font-black text-[#1a2332]">
                 {activeModal === 'add' ? 'Novo Usuário' : 'Editar Usuário'}
               </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-600"><X size={20} /></button>
             </div>
 
             <form onSubmit={activeModal === 'add' ? handleAddMember : handleEditMember} className="space-y-4">
@@ -354,7 +354,7 @@ export function TeamManagement() {
                   Cancelar
                 </button>
                 <button type="submit"
-                  className="flex-1 bg-[#E8821A] text-white font-bold py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm">
+                  className="flex-1 bg-[#E8821A] text-gray-900 font-bold py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm">
                   {activeModal === 'add' ? 'Cadastrar Usuário' : 'Salvar Alterações'}
                 </button>
               </div>
@@ -385,7 +385,7 @@ export function TeamManagement() {
               <div className="text-4xl font-black tracking-widest text-[#1a2332]">
                 {newMemberCode || '—'}
               </div>
-              <p className="text-gray-400 text-xs mt-2">Compartilhe com o usuário via canal seguro</p>
+              <p className="text-gray-500 text-xs mt-2">Compartilhe com o usuário via canal seguro</p>
             </div>
             <button
               onClick={closeModal}
@@ -402,7 +402,7 @@ export function TeamManagement() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={24} className="text-red-500" />
+              <Trash2 size={24} className="text-red-700" />
             </div>
             <h2 className="text-xl font-black text-[#1a2332] mb-2">Excluir Usuário</h2>
             <p className="text-gray-500 text-sm mb-6">

@@ -68,9 +68,9 @@ export function ConstructionDashboard() {
 
   const renderNotificationIcon = (type: string, size = 16) => {
     if (type === 'success') return <CheckCircle2 size={size} className="text-green-500 shrink-0" />;
-    if (type === 'warning') return <AlertTriangle size={size} className="text-yellow-500 shrink-0" />;
-    if (type === 'error')   return <AlertCircle  size={size} className="text-red-500 shrink-0" />;
-    return <Info size={size} className="text-blue-500 shrink-0" />;
+    if (type === 'warning') return <AlertTriangle size={size} className="text-yellow-700 shrink-0" />;
+    if (type === 'error')   return <AlertCircle  size={size} className="text-red-700 shrink-0" />;
+    return <Info size={size} className="text-blue-700 shrink-0" />;
   };
 
   const getNotificationBadge = (type: string) => {
@@ -83,7 +83,7 @@ export function ConstructionDashboard() {
   const getRiskLevelStyle = (riskLevel: string) => {
     if (riskLevel === 'Alto')  return 'text-red-600 bg-red-50';
     if (riskLevel === 'Médio') return 'text-yellow-600 bg-yellow-50';
-    return                            'text-green-600 bg-green-50';
+    return                            'text-green-700 bg-green-50';
   };
 
   const handleNotificationClick = (notification: SystemNotification) => {
@@ -164,7 +164,7 @@ export function ConstructionDashboard() {
             </div>
             <p className="text-gray-500 text-xs mb-1">{kpi.label}</p>
             <p className="text-[#1a2332] text-3xl font-black">{kpi.value}</p>
-            <p className="text-green-600 text-xs mt-1">{kpi.subtext}</p>
+            <p className="text-green-700 text-xs mt-1">{kpi.subtext}</p>
           </div>
         ))}
       </div>
@@ -209,7 +209,7 @@ export function ConstructionDashboard() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="font-black text-[#1a2332] text-lg mb-4">Relatório de Atrasos</h2>
           {delayedStageRows.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-gray-500">
               <CheckCircle2 size={40} className="text-green-400 mx-auto mb-3" />
               <p className="text-sm font-semibold">Nenhum atraso registrado</p>
             </div>
@@ -218,10 +218,10 @@ export function ConstructionDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left text-gray-400 font-semibold pb-2">Obra</th>
-                    <th className="text-left text-gray-400 font-semibold pb-2">Etapa</th>
-                    <th className="text-left text-gray-400 font-semibold pb-2">Dias</th>
-                    <th className="text-left text-gray-400 font-semibold pb-2">Impacto</th>
+                    <th className="text-left text-gray-500 font-semibold pb-2">Obra</th>
+                    <th className="text-left text-gray-500 font-semibold pb-2">Etapa</th>
+                    <th className="text-left text-gray-500 font-semibold pb-2">Dias</th>
+                    <th className="text-left text-gray-500 font-semibold pb-2">Impacto</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -270,13 +270,13 @@ export function ConstructionDashboard() {
                 {renderNotificationIcon(notification.type)}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-700 leading-relaxed line-clamp-2">{notification.message}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
+                  <p className="text-[10px] text-gray-500 mt-0.5">
                     {format(new Date(notification.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   {!notification.read && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
-                  <Eye size={13} className="text-gray-300 group-hover:text-gray-500 transition-colors mt-0.5" />
+                  <Eye size={13} className="text-gray-500 group-hover:text-gray-500 transition-colors mt-0.5" />
                 </div>
               </div>
             ))}
@@ -293,7 +293,7 @@ export function ConstructionDashboard() {
                 {renderNotificationIcon(selectedNotification.type, 20)}
                 <h2 className="font-black text-[#1a2332]">Detalhes da Notificação</h2>
               </div>
-              <button onClick={closeNotificationModal} className="text-gray-400 hover:text-gray-600 transition">
+              <button onClick={closeNotificationModal} className="text-gray-500 hover:text-gray-600 transition">
                 <X size={20} />
               </button>
             </div>
@@ -307,11 +307,11 @@ export function ConstructionDashboard() {
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-sm text-gray-700 leading-relaxed">{selectedNotification.message}</p>
               </div>
-              <div className="flex items-center justify-between text-xs text-gray-400">
+              <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>
                   {format(new Date(selectedNotification.createdAt), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                 </span>
-                <span className={`font-semibold ${selectedNotification.read ? 'text-gray-400' : 'text-blue-500'}`}>
+                <span className={`font-semibold ${selectedNotification.read ? 'text-gray-500' : 'text-blue-700'}`}>
                   {selectedNotification.read ? 'Lida' : 'Não lida'}
                 </span>
               </div>

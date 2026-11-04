@@ -145,9 +145,9 @@ export function ProjectSchedule() {
 
   const getStageStatusIcon = (status: ScheduleStage['status']) => {
     if (status === 'Concluída')    return <CheckCircle2 size={24} className="text-green-500" />;
-    if (status === 'Em andamento') return <Clock        size={24} className="text-blue-500" />;
-    if (status === 'Atrasada')     return <AlertTriangle size={24} className="text-red-500" />;
-    return <Circle size={24} className="text-gray-300" />;
+    if (status === 'Em andamento') return <Clock        size={24} className="text-blue-700" />;
+    if (status === 'Atrasada')     return <AlertTriangle size={24} className="text-red-700" />;
+    return <Circle size={24} className="text-gray-500" />;
   };
 
   const getStageStatusBadgeClasses = (status: ScheduleStage['status']) => {
@@ -165,7 +165,7 @@ export function ProjectSchedule() {
       const deviation   = Math.round(
         (actualDate.getTime() - plannedDate.getTime()) / (1000 * 60 * 60 * 24)
       );
-      if (deviation < 0) return { text: `Adiantou ${Math.abs(deviation)} dias`, color: 'text-green-600' };
+      if (deviation < 0) return { text: `Adiantou ${Math.abs(deviation)} dias`, color: 'text-green-700' };
       if (deviation > 0) return { text: `Atrasou ${deviation} dias`,            color: 'text-red-600' };
       return { text: 'No prazo', color: 'text-gray-500' };
     }
@@ -206,7 +206,7 @@ export function ProjectSchedule() {
         {canEditSchedule && (
           <button
             onClick={openAddStageModal}
-            className="flex items-center gap-2 bg-[#E8821A] text-white font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm whitespace-nowrap"
+            className="flex items-center gap-2 bg-[#E8821A] text-gray-900 font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm whitespace-nowrap"
           >
             <Plus size={16} /> Adicionar Etapa
           </button>
@@ -218,19 +218,19 @@ export function ProjectSchedule() {
         <div className="bg-blue-600 rounded-2xl p-5 text-white">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div className="text-blue-200 text-xs mb-1">Cliente</div>
+              <div className="text-white text-xs mb-1">Cliente</div>
               <div className="font-bold">{selectedProject.client}</div>
             </div>
             <div>
-              <div className="text-blue-200 text-xs mb-1">Responsável</div>
+              <div className="text-white text-xs mb-1">Responsável</div>
               <div className="font-bold">{projectResponsible?.name ?? '—'}</div>
             </div>
             <div>
-              <div className="text-blue-200 text-xs mb-1">Progresso Geral</div>
+              <div className="text-white text-xs mb-1">Progresso Geral</div>
               <div className="font-bold text-xl">{overallProjectProgress}%</div>
             </div>
             <div>
-              <div className="text-blue-200 text-xs mb-1">Data Prevista</div>
+              <div className="text-white text-xs mb-1">Data Prevista</div>
               <div className="font-bold">
                 {new Date(selectedProject.endDate + 'T12:00:00').toLocaleDateString('pt-BR')}
               </div>
@@ -249,7 +249,7 @@ export function ProjectSchedule() {
         <h2 className="font-black text-[#1a2332] text-lg mb-6">Linha do Tempo</h2>
 
         {projectStageList.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-gray-500">
             <Clock size={40} className="mx-auto mb-3 text-gray-200" />
             <p className="text-sm font-semibold">Nenhuma etapa cadastrada</p>
             {canEditSchedule && (
@@ -288,16 +288,16 @@ export function ProjectSchedule() {
                               </span>
                             )}
                           </div>
-                          <div className="text-gray-400 text-xs mt-0.5">
+                          <div className="text-gray-500 text-xs mt-0.5">
                             Responsável: {resolveTeamMemberName(stage.responsibleId)}
                           </div>
                         </div>
                         {canEditSchedule && (
                           <div className="flex gap-2">
-                            <button onClick={() => openEditStageModal(stage)} aria-label={`Editar etapa ${stage.name}`} className="text-orange-500 hover:text-orange-700 transition">
+                            <button onClick={() => openEditStageModal(stage)} aria-label={`Editar etapa ${stage.name}`} className="text-orange-700 hover:text-orange-700 transition">
                               <Pencil size={15} />
                             </button>
-                            <button onClick={() => setStagePendingDeleteId(stage.id)} aria-label={`Excluir etapa ${stage.name}`} className="text-red-500 hover:text-red-700 transition">
+                            <button onClick={() => setStagePendingDeleteId(stage.id)} aria-label={`Excluir etapa ${stage.name}`} className="text-red-700 hover:text-red-700 transition">
                               <Trash2 size={15} />
                             </button>
                           </div>
@@ -306,13 +306,13 @@ export function ProjectSchedule() {
 
                       <div className="grid grid-cols-3 gap-4 text-xs">
                         <div>
-                          <div className="text-gray-400 mb-0.5">Data Prevista</div>
+                          <div className="text-gray-500 mb-0.5">Data Prevista</div>
                           <div className="font-semibold text-gray-700">
                             {new Date(stage.plannedEnd + 'T12:00:00').toLocaleDateString('pt-BR')}
                           </div>
                         </div>
                         <div>
-                          <div className="text-gray-400 mb-0.5">Data Real</div>
+                          <div className="text-gray-500 mb-0.5">Data Real</div>
                           <div className="font-semibold text-gray-700">
                             {stage.actualEnd
                               ? new Date(stage.actualEnd + 'T12:00:00').toLocaleDateString('pt-BR')
@@ -320,7 +320,7 @@ export function ProjectSchedule() {
                           </div>
                         </div>
                         <div>
-                          <div className="text-gray-400 mb-0.5">Situação</div>
+                          <div className="text-gray-500 mb-0.5">Situação</div>
                           <div className={`font-semibold ${deviationLabel?.color ?? 'text-gray-500'}`}>
                             {deviationLabel?.text ?? (stage.status === 'Não iniciada' ? 'Aguardando' : 'Em andamento')}
                           </div>
@@ -339,7 +339,7 @@ export function ProjectSchedule() {
                       </div>
 
                       {stage.notes && (
-                        <p className="text-gray-400 text-xs mt-2 italic">{stage.notes}</p>
+                        <p className="text-gray-500 text-xs mt-2 italic">{stage.notes}</p>
                       )}
                     </div>
                   </div>
@@ -358,7 +358,7 @@ export function ProjectSchedule() {
               <h2 className="text-xl font-black text-[#1a2332]">
                 {activeModal === 'add' ? 'Adicionar Etapa' : 'Editar Etapa'}
               </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-600">
                 <X size={20} />
               </button>
             </div>
@@ -446,7 +446,7 @@ export function ProjectSchedule() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={24} className="text-red-500" />
+              <Trash2 size={24} className="text-red-700" />
             </div>
             <h2 className="text-xl font-black text-[#1a2332] mb-2">Excluir Etapa</h2>
             <p className="text-gray-500 text-sm mb-6">

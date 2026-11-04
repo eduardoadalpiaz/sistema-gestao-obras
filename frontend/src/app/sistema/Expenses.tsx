@@ -189,7 +189,7 @@ export function Expenses() {
         <>
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-[#E8821A] text-white font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm"
+          className="flex items-center gap-2 bg-[#E8821A] text-gray-900 font-bold px-5 py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm"
         >
           <Plus size={16} /> Lançar Gasto
         </button>
@@ -200,7 +200,7 @@ export function Expenses() {
       {/* Busca e filtros */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -229,7 +229,7 @@ export function Expenses() {
             <span className="text-xs font-semibold text-gray-500">Total Geral</span>
           </div>
           <div className="font-black text-[#1a2332]">{formatCurrency(grandTotal)}</div>
-          <div className="text-xs text-gray-400 mt-0.5">{expenses.length} lançamento(s)</div>
+          <div className="text-xs text-gray-500 mt-0.5">{expenses.length} lançamento(s)</div>
         </div>
 
         {selectedProjectId ? (
@@ -237,40 +237,40 @@ export function Expenses() {
             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Building2 size={16} className="text-blue-500" />
+                  <Building2 size={16} className="text-blue-700" />
                 </div>
                 <span className="text-xs font-semibold text-gray-500">Gasto Real</span>
               </div>
               <div className="font-black text-[#1a2332]">{formatCurrency(projectTotal)}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{filteredExpenses.length} lançamento(s)</div>
+              <div className="text-xs text-gray-500 mt-0.5">{filteredExpenses.length} lançamento(s)</div>
             </div>
 
             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-                  <Receipt size={16} className="text-purple-500" />
+                  <Receipt size={16} className="text-purple-700" />
                 </div>
                 <span className="text-xs font-semibold text-gray-500">Orçamento Estimado</span>
               </div>
               <div className="font-black text-[#1a2332]">
-                {projectBudget > 0 ? formatCurrency(projectBudget) : <span className="text-gray-300 text-sm">Não definido</span>}
+                {projectBudget > 0 ? formatCurrency(projectBudget) : <span className="text-gray-500 text-sm">Não definido</span>}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">Definido na obra</div>
+              <div className="text-xs text-gray-500 mt-0.5">Definido na obra</div>
             </div>
 
             <div className={`rounded-2xl p-4 shadow-sm border ${budgetVariance === null ? 'bg-white border-gray-100' : budgetVariance > 0 ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${budgetVariance === null ? 'bg-gray-100' : budgetVariance > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
                   {budgetVariance !== null && budgetVariance > 0
-                    ? <TrendingUp   size={16} className="text-red-500" />
-                    : <TrendingDown size={16} className={budgetVariance !== null ? 'text-green-500' : 'text-gray-400'} />}
+                    ? <TrendingUp   size={16} className="text-red-700" />
+                    : <TrendingDown size={16} className={budgetVariance !== null ? 'text-green-500' : 'text-gray-500'} />}
                 </div>
                 <span className="text-xs font-semibold text-gray-500">Diferença</span>
               </div>
-              <div className={`font-black ${budgetVariance === null ? 'text-gray-300' : budgetVariance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              <div className={`font-black ${budgetVariance === null ? 'text-gray-500' : budgetVariance > 0 ? 'text-red-600' : 'text-green-700'}`}>
                 {budgetVariance === null ? '—' : `${budgetVariance > 0 ? '+' : ''}${formatCurrency(budgetVariance)}`}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">
+              <div className="text-xs text-gray-500 mt-0.5">
                 {budgetVariance === null ? 'Sem orçamento' : budgetVariance > 0 ? 'Acima do orçamento' : 'Dentro do orçamento'}
               </div>
             </div>
@@ -280,18 +280,18 @@ export function Expenses() {
             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Building2 size={16} className="text-blue-500" />
+                  <Building2 size={16} className="text-blue-700" />
                 </div>
                 <span className="text-xs font-semibold text-gray-500">Resultado Filtrado</span>
               </div>
               <div className="font-black text-[#1a2332]">{formatCurrency(filteredTotal)}</div>
-              <div className="text-xs text-gray-400 mt-0.5">{filteredExpenses.length} lançamento(s)</div>
+              <div className="text-xs text-gray-500 mt-0.5">{filteredExpenses.length} lançamento(s)</div>
             </div>
             <div className="col-span-2 bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <p className="text-xs font-semibold text-gray-500 mb-3">Por categoria</p>
               <div className="flex flex-wrap gap-2">
                 {categoryTotals.length === 0
-                  ? <span className="text-gray-300 text-sm">Nenhum gasto lançado</span>
+                  ? <span className="text-gray-500 text-sm">Nenhum gasto lançado</span>
                   : categoryTotals.map(({ category, total }) => (
                     <div key={category} className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${CATEGORY_BADGE_CLASSES[category]}`}>
                       {category}: {formatCurrency(total)}
@@ -306,7 +306,7 @@ export function Expenses() {
       {/* Tabela (desktop) */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hidden md:block">
         {filteredExpenses.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-300">
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
             <Receipt size={40} className="mb-3" />
             <p className="font-semibold text-sm">Nenhum gasto encontrado</p>
             <p className="text-xs mt-1">Clique em "Lançar Gasto" para registrar uma despesa</p>
@@ -315,15 +315,15 @@ export function Expenses() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left text-gray-400 font-semibold px-6 py-4">Data</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Obra</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Descrição</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Categoria</th>
-                <th className="text-right text-gray-400 font-semibold px-4 py-4">Valor</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Fornecedor</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Comprovante</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Lançado por</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Ações</th>
+                <th className="text-left text-gray-500 font-semibold px-6 py-4">Data</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Obra</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Descrição</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Categoria</th>
+                <th className="text-right text-gray-500 font-semibold px-4 py-4">Valor</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Fornecedor</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Comprovante</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Lançado por</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -335,7 +335,7 @@ export function Expenses() {
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="font-semibold text-[#1a2332] text-sm">{expense.description}</div>
-                    {expense.notes && <div className="text-gray-400 text-xs mt-0.5 truncate max-w-[200px]">{expense.notes}</div>}
+                    {expense.notes && <div className="text-gray-500 text-xs mt-0.5 truncate max-w-[200px]">{expense.notes}</div>}
                   </td>
                   <td className="px-4 py-3.5">
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${CATEGORY_BADGE_CLASSES[expense.category]}`}>
@@ -350,7 +350,7 @@ export function Expenses() {
                         <FileImage size={13} /> Ver
                       </button>
                     ) : (
-                      <span className="text-gray-300 text-xs">—</span>
+                      <span className="text-gray-500 text-xs">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3.5 text-gray-500 text-xs">{resolveTeamMemberName(expense.createdBy)}</td>
@@ -358,10 +358,10 @@ export function Expenses() {
                     <div className="flex items-center gap-2">
                       {canEditExpenses && (
                       <>
-                      <button onClick={() => openEditModal(expense)} className="text-orange-500 hover:text-orange-700 transition" title="Editar">
+                      <button onClick={() => openEditModal(expense)} className="text-orange-700 hover:text-orange-700 transition" title="Editar">
                         <Pencil size={15} />
                       </button>
-                      <button onClick={() => openDeleteModal(expense)} className="text-red-500 hover:text-red-700 transition" title="Excluir">
+                      <button onClick={() => openDeleteModal(expense)} className="text-red-700 hover:text-red-700 transition" title="Excluir">
                         <Trash2 size={15} />
                       </button>
                       </>
@@ -382,7 +382,7 @@ export function Expenses() {
             <div className="flex items-start justify-between mb-2">
               <div>
                 <div className="font-bold text-[#1a2332]">{expense.description}</div>
-                <div className="text-gray-400 text-xs mt-0.5">{resolveProjectName(expense.obraId)}</div>
+                <div className="text-gray-500 text-xs mt-0.5">{resolveProjectName(expense.obraId)}</div>
               </div>
               <div className="font-black text-[#1a2332] text-sm">{formatCurrency(expense.value)}</div>
             </div>
@@ -390,7 +390,7 @@ export function Expenses() {
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${CATEGORY_BADGE_CLASSES[expense.category]}`}>
                 {expense.category}
               </span>
-              <span className="text-gray-400 text-xs">{formatShortDate(expense.date)}</span>
+              <span className="text-gray-500 text-xs">{formatShortDate(expense.date)}</span>
             </div>
             <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
               {expense.receipt && (
@@ -400,10 +400,10 @@ export function Expenses() {
               )}
               {canEditExpenses && (
               <>
-              <button onClick={() => openEditModal(expense)} className="flex items-center gap-1.5 text-orange-500 text-xs font-semibold ml-auto">
+              <button onClick={() => openEditModal(expense)} className="flex items-center gap-1.5 text-orange-700 text-xs font-semibold ml-auto">
                 <Pencil size={13} /> Editar
               </button>
-              <button onClick={() => openDeleteModal(expense)} className="flex items-center gap-1.5 text-red-500 text-xs font-semibold">
+              <button onClick={() => openDeleteModal(expense)} className="flex items-center gap-1.5 text-red-700 text-xs font-semibold">
                 <Trash2 size={13} /> Excluir
               </button>
               </>
@@ -421,7 +421,7 @@ export function Expenses() {
               <h2 className="text-xl font-black text-[#1a2332]">
                 {activeModal === 'add' ? 'Lançar Gasto' : 'Editar Gasto'}
               </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-600"><X size={20} /></button>
             </div>
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -482,12 +482,12 @@ export function Expenses() {
                 <button type="button" onClick={() => fileInputRef.current?.click()}
                   className="w-full border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#E8821A] hover:bg-orange-50 transition text-center">
                   {expenseForm.receipt ? (
-                    <span className="flex items-center justify-center gap-2 text-green-600">
+                    <span className="flex items-center justify-center gap-2 text-green-700">
                       <Eye size={16} />
                       <span className="text-sm font-semibold">{expenseForm.receiptName || 'Arquivo anexado'}</span>
                     </span>
                   ) : (
-                    <span className="block text-gray-400">
+                    <span className="block text-gray-500">
                       <Upload size={20} className="mx-auto mb-1" />
                       <span className="block text-xs font-semibold">Clique para anexar</span>
                       <span className="block text-xs mt-0.5">JPG, PNG ou PDF · fotos são reduzidas sozinhas</span>
@@ -496,7 +496,7 @@ export function Expenses() {
                 </button>
                 {expenseForm.receipt && (
                   <button type="button" onClick={() => setExpenseForm(p => ({ ...p, receipt: '', receiptName: '' }))}
-                    className="mt-1 flex items-center gap-1 text-xs text-red-500 hover:text-red-700"><X size={12} /> Remover anexo</button>
+                    className="mt-1 flex items-center gap-1 text-xs text-red-700 hover:text-red-700"><X size={12} /> Remover anexo</button>
                 )}
                 <input id="expenses-comprovante" ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleReceiptFileChange} />
               </div>
@@ -507,7 +507,7 @@ export function Expenses() {
                   Cancelar
                 </button>
                 <button type="submit" disabled={isSaving}
-                  className="flex-1 bg-[#E8821A] text-white font-bold py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm disabled:opacity-70 flex items-center justify-center gap-2">
+                  className="flex-1 bg-[#E8821A] text-gray-900 font-bold py-2.5 rounded-xl hover:bg-[#d4731a] transition text-sm disabled:opacity-70 flex items-center justify-center gap-2">
                   {isSaving
                     ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Salvando...</>
                     : activeModal === 'add' ? 'Lançar Gasto' : 'Salvar'}
@@ -525,15 +525,15 @@ export function Expenses() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-black text-[#1a2332]">{selectedExpense.description}</h2>
-                <p className="text-gray-400 text-xs">{selectedExpense.receiptName}</p>
+                <p className="text-gray-500 text-xs">{selectedExpense.receiptName}</p>
               </div>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-600"><X size={20} /></button>
             </div>
             <div className="flex-1 overflow-y-auto">
               {receiptPreviewData?.startsWith('data:image') ? (
                 <img src={receiptPreviewData} alt="Comprovante" className="w-full rounded-xl object-contain max-h-[60vh]" />
               ) : (
-                <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-400">
+                <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-500">
                   <FileImage size={32} className="mx-auto mb-2" />
                   <p className="text-sm">Prévia não disponível para este tipo de arquivo.</p>
                 </div>
@@ -548,7 +548,7 @@ export function Expenses() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={24} className="text-red-500" />
+              <Trash2 size={24} className="text-red-700" />
             </div>
             <h2 className="text-xl font-black text-[#1a2332] mb-2">Excluir Gasto</h2>
             <p className="text-gray-500 text-sm mb-6">
