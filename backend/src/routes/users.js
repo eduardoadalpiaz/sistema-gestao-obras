@@ -9,6 +9,7 @@ const { insertRow, updateRow, deleteRow } = require("../repo");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { requireRole } = require("../middleware/auth");
 const { ROLES } = require("../config");
+const { mapRow } = require("../utils/caseConvert");
 
 // roteador deste assunto; o app.js o conecta ao caminho
 const router = express.Router();
@@ -24,6 +25,7 @@ function emailValido(email) {
   const ponto = dominio.lastIndexOf(".");
   return ponto > 0 && ponto < dominio.length - 1;
 }
+const NOME_ANONIMO = "Usuário removido";
 const STATUSES = ["Ativo", "Inativo"];
 const bad = (res, message) => res.status(400).json({ message });
 
@@ -108,6 +110,42 @@ router.put("/:id", asyncHandler(async (req, res) => {
   // o hash não volta na resposta
   delete user.passwordHash;
   res.json({ user });
+}));
+
+// LGPD art. 18: exporta os dados de um usuário (cadastro + histórico), sem hash nem código
+router.get("/:id/export", asyncHandler(async (req, res) => {
+  const { rows } = await query("SELECT * FROM usuarios WHERE id = $1", [req.params.id]);
+  if (!rows[0]) return res.status(404).json({ message: "Usuário não encontrado." });
+  const { password_hash, verification_code, ...user } = rows[0];
+  const history = await query("SELECT * FROM historico_alteracoes WHERE user_id = $1 ORDER BY created_at", [req.params.id]);
+  res.json({
+    user: mapRow(user),
+    history: history.rows.map(mapRow),
+  });
+}));
+
+// LGPD art. 18: anonimiza o usuário e mantém o histórico (a trilha de auditoria continua)
+router.post("/:id/anonymize", asyncHandler(async (req, res) => {
+  if (req.params.id === req.user.id) return bad(res, "Você não pode anonimizar a si mesmo.");
+  const { rows } = await query(
+    `SELECT (SELECT role FROM usuarios WHERE id = $1) AS role,
+            (SELECT COUNT(*)::int FROM usuarios WHERE id = $1) AS existe,
+            (SELECT COUNT(*)::int FROM usuarios WHERE role = 'Administrativo' AND status = 'Ativo') AS admins`,
+    [req.params.id]
+  );
+  if (!rows[0].existe) return res.status(404).json({ message: "Usuário não encontrado." });
+  if (rows[0].role === "Administrativo" && rows[0].admins <= 1) {
+    return bad(res, "Não é possível anonimizar o último administrador.");
+  }
+  // senha aleatória: ninguém entra mais com essa conta
+  const hash = await bcrypt.hash(crypto.randomBytes(24).toString("base64url"), 10);
+  await query(
+    `UPDATE usuarios SET name = $2, email = $3, phone = '', status = 'Inativo', verified = false,
+            verification_code = NULL, password_hash = $4, updated_at = now() WHERE id = $1`,
+    [req.params.id, NOME_ANONIMO, `removido-${req.params.id}@anonimizado.invalid`, hash]
+  );
+  await query("UPDATE historico_alteracoes SET user_name = $2 WHERE user_id = $1", [req.params.id, NOME_ANONIMO]);
+  res.json({ success: true });
 }));
 
 router.delete("/:id", asyncHandler(async (req, res) => {

@@ -116,3 +116,69 @@ describe("DELETE /users/:id", () => {
     assert.equal((await api("DELETE", `/users/${admin.id}`, { token: adminToken })).status, 400);
   });
 });
+
+describe("LGPD: dados do titular", () => {
+  test("exporta os dados do usuário e o histórico dele, sem hash nem código", async () => {
+    const u = await h.createUser("Engenheiro", { name: "Titular Export", email: "titular.export@teste.com" });
+    await h.pool.query(
+      "INSERT INTO historico_alteracoes (user_id, user_name, action, module, target_name) VALUES ($1, $2, 'Criou', 'Obras', 'Obra X')",
+      [u.id, u.name]
+    );
+    const r = await api("GET", `/users/${u.id}/export`, { token: adminToken });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.user.email, "titular.export@teste.com");
+    assert.equal(r.body.user.passwordHash, undefined);
+    assert.equal(r.body.user.verificationCode, undefined);
+    assert.equal(r.body.history.length, 1);
+    assert.equal(r.body.history[0].targetName, "Obra X");
+  });
+
+  test("exportar usuário inexistente dá 404", async () => {
+    assert.equal((await api("GET", "/users/00000000-0000-0000-0000-000000000000/export", { token: adminToken })).status, 404);
+  });
+
+  test("só o Administrativo exporta e anonimiza", async () => {
+    const alvo = await h.createUser("Visualizador");
+    for (const role of ["Engenheiro", "Mestre de Obras", "Visualizador", "TI", "Dono"]) {
+      const t = h.tokenFor(await h.createUser(role));
+      assert.equal((await api("GET", `/users/${alvo.id}/export`, { token: t })).status, 403);
+      assert.equal((await api("POST", `/users/${alvo.id}/anonymize`, { token: t })).status, 403);
+    }
+  });
+
+  test("anonimiza: tira nome, e-mail e telefone, desativa e mantém o histórico", async () => {
+    const u = await h.createUser("Engenheiro", { name: "Fulano Real", email: "fulano.real@teste.com" });
+    await h.pool.query("UPDATE usuarios SET phone = '48999990000' WHERE id = $1", [u.id]);
+    await h.pool.query(
+      "INSERT INTO historico_alteracoes (user_id, user_name, action, module, target_name) VALUES ($1, $2, 'Editou', 'Obras', 'Obra Y')",
+      [u.id, u.name]
+    );
+    const r = await api("POST", `/users/${u.id}/anonymize`, { token: adminToken });
+    assert.equal(r.status, 200);
+    const { rows } = await h.pool.query("SELECT * FROM usuarios WHERE id = $1", [u.id]);
+    assert.equal(rows[0].name, "Usuário removido");
+    assert.ok(rows[0].email.startsWith("removido-"));
+    assert.ok(!rows[0].email.includes("fulano"));
+    assert.equal(rows[0].phone, "");
+    assert.equal(rows[0].status, "Inativo");
+    assert.equal(rows[0].verification_code, null);
+    assert.equal(await bcrypt.compare(u.password, rows[0].password_hash), false);
+    const hist = await h.pool.query("SELECT user_name, target_name FROM historico_alteracoes WHERE user_id = $1", [u.id]);
+    assert.equal(hist.rows.length, 1);
+    assert.equal(hist.rows[0].user_name, "Usuário removido");
+    assert.equal(hist.rows[0].target_name, "Obra Y");
+  });
+
+  test("anonimizado não consegue entrar", async () => {
+    const u = await h.createUser("Engenheiro");
+    await api("POST", `/users/${u.id}/anonymize`, { token: adminToken });
+    const r = await api("POST", "/auth/login", { body: { email: u.email, password: u.password } });
+    assert.notEqual(r.status, 200);
+  });
+
+  test("não anonimiza a si mesmo, o último administrador nem usuário inexistente", async () => {
+    assert.equal((await api("POST", `/users/${admin.id}/anonymize`, { token: adminToken })).status, 400);
+    assert.equal((await api("POST", "/users/00000000-0000-0000-0000-000000000000/anonymize", { token: adminToken })).status, 404);
+    assert.equal((await api("POST", "/users/nao-e-uuid/anonymize", { token: adminToken })).status, 400);
+  });
+});
