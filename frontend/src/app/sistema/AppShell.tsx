@@ -173,7 +173,7 @@ export function AppShell() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Barra do topo (celular) */}
         <div className="md:hidden flex items-center justify-between bg-[#1a2332] px-4 py-3">
-          <button onClick={() => setIsMobileSidebarOpen(true)} className="text-white">
+          <button onClick={() => setIsMobileSidebarOpen(true)} aria-label="Abrir menu" className="text-white">
             <Menu size={22} />
           </button>
           <div className="flex items-center gap-2">
