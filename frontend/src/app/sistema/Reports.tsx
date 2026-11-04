@@ -318,7 +318,7 @@ export function Reports() {
         <div className="flex gap-2">
           <button
             onClick={exportToExcel}
-            className="flex items-center gap-2 bg-green-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-green-700 transition text-sm"
+            className="flex items-center gap-2 bg-green-700 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-green-800 transition text-sm"
           >
             <FileSpreadsheet size={16} /> Exportar Excel
           </button>
@@ -334,9 +334,9 @@ export function Reports() {
       {/* Cards de indicadores */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Etapas Atrasadas', value: totalDelayedStages,  icon: Clock,         color: 'text-red-500',    light: 'bg-red-50' },
-          { label: 'Obras em Atenção', value: projectsUnderReview, icon: AlertTriangle,  color: 'text-yellow-500', light: 'bg-yellow-50' },
-          { label: 'Dias Médio Atraso', value: `${averageDaysOverdue}d`, icon: TrendingDown, color: 'text-orange-500', light: 'bg-orange-50' },
+          { label: 'Etapas Atrasadas', value: totalDelayedStages,  icon: Clock,         color: 'text-red-700',    light: 'bg-red-50' },
+          { label: 'Obras em Atenção', value: projectsUnderReview, icon: AlertTriangle,  color: 'text-yellow-700', light: 'bg-yellow-50' },
+          { label: 'Dias Médio Atraso', value: `${averageDaysOverdue}d`, icon: TrendingDown, color: 'text-orange-700', light: 'bg-orange-50' },
           { label: 'Críticos (>15d)',   value: criticalDelayCount,  icon: AlertTriangle,  color: 'text-red-600',    light: 'bg-red-50' },
         ].map(kpi => (
           <div key={kpi.label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
@@ -387,7 +387,7 @@ export function Reports() {
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
         <h2 className="font-black text-[#1a2332] text-lg mb-4">Etapas com Atraso</h2>
         {delayedStageReportRows.length === 0 ? (
-          <div className="text-center py-12 text-gray-300">
+          <div className="text-center py-12 text-gray-500">
             <Clock size={40} className="mx-auto mb-3" />
             <p className="font-semibold text-sm">Nenhuma etapa atrasada</p>
           </div>
@@ -396,11 +396,11 @@ export function Reports() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left text-gray-400 font-semibold pb-3 px-2">Obra</th>
-                  <th className="text-left text-gray-400 font-semibold pb-3 px-2">Etapa</th>
-                  <th className="text-left text-gray-400 font-semibold pb-3 px-2">Dias Atrasado</th>
-                  <th className="text-left text-gray-400 font-semibold pb-3 px-2">Impacto</th>
-                  <th className="text-left text-gray-400 font-semibold pb-3 px-2">Responsável</th>
+                  <th className="text-left text-gray-500 font-semibold pb-3 px-2">Obra</th>
+                  <th className="text-left text-gray-500 font-semibold pb-3 px-2">Etapa</th>
+                  <th className="text-left text-gray-500 font-semibold pb-3 px-2">Dias Atrasado</th>
+                  <th className="text-left text-gray-500 font-semibold pb-3 px-2">Impacto</th>
+                  <th className="text-left text-gray-500 font-semibold pb-3 px-2">Responsável</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">

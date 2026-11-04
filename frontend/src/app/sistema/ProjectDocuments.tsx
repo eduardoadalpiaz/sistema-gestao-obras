@@ -190,13 +190,13 @@ export function ProjectDocuments() {
       {urgentDocumentCount > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
           <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
-            <AlertTriangle size={18} className="text-red-500" />
+            <AlertTriangle size={18} className="text-red-700" />
           </div>
           <div>
             <p className="font-bold text-red-700 text-sm">
               {urgentDocumentCount} documento{urgentDocumentCount > 1 ? 's' : ''} requer{urgentDocumentCount === 1 ? '' : 'em'} atenção
             </p>
-            <p className="text-red-500 text-xs">Verifique os documentos vencidos ou próximos do vencimento</p>
+            <p className="text-red-700 text-xs">Verifique os documentos vencidos ou próximos do vencimento</p>
           </div>
         </div>
       )}
@@ -231,7 +231,7 @@ export function ProjectDocuments() {
       {/* Busca e filtro por obra */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -255,7 +255,7 @@ export function ProjectDocuments() {
       {/* Tabela (desktop) */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hidden md:block">
         {filteredDocuments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-300">
+          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
             <ShieldCheck size={40} className="mb-3" />
             <p className="font-semibold text-sm">Nenhum documento encontrado</p>
             <p className="text-xs mt-1">Clique em "Novo Documento" para adicionar</p>
@@ -264,14 +264,14 @@ export function ProjectDocuments() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left text-gray-400 font-semibold px-6 py-4">Documento</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Obra</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Tipo</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Status</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Emissão</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Vencimento</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Arquivo</th>
-                <th className="text-left text-gray-400 font-semibold px-4 py-4">Ações</th>
+                <th className="text-left text-gray-500 font-semibold px-6 py-4">Documento</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Obra</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Tipo</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Status</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Emissão</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Vencimento</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Arquivo</th>
+                <th className="text-left text-gray-500 font-semibold px-4 py-4">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -282,11 +282,11 @@ export function ProjectDocuments() {
                   <tr key={doc.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-3.5">
                       <div className="font-bold text-[#1a2332]">{doc.title}</div>
-                      {doc.notes && <div className="text-gray-400 text-xs mt-0.5 truncate max-w-[180px]">{doc.notes}</div>}
+                      {doc.notes && <div className="text-gray-500 text-xs mt-0.5 truncate max-w-[180px]">{doc.notes}</div>}
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600">
-                        <Building2 size={12} className="text-gray-400" />
+                        <Building2 size={12} className="text-gray-500" />
                         {resolveProjectName(doc.obraId)}
                       </div>
                     </td>
@@ -308,7 +308,7 @@ export function ProjectDocuments() {
                           {formatShortDate(doc.expiryDate)}
                         </span>
                       ) : (
-                        <span className="text-gray-300 text-xs">—</span>
+                        <span className="text-gray-500 text-xs">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3.5">
@@ -318,17 +318,17 @@ export function ProjectDocuments() {
                           <FileImage size={13} /> Ver arquivo
                         </button>
                       ) : (
-                        <span className="text-gray-300 text-xs">Sem arquivo</span>
+                        <span className="text-gray-500 text-xs">Sem arquivo</span>
                       )}
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
                         {canEditDocuments && (
                         <>
-                        <button onClick={() => openEditModal(doc)} className="text-orange-500 hover:text-orange-700 transition" title="Editar">
+                        <button onClick={() => openEditModal(doc)} className="text-orange-700 hover:text-orange-700 transition" title="Editar">
                           <Pencil size={15} />
                         </button>
-                        <button onClick={() => openDeleteModal(doc)} className="text-red-500 hover:text-red-700 transition" title="Excluir">
+                        <button onClick={() => openDeleteModal(doc)} className="text-red-700 hover:text-red-700 transition" title="Excluir">
                           <Trash2 size={15} />
                         </button>
                         </>
@@ -346,7 +346,7 @@ export function ProjectDocuments() {
       {/* Cards (celular) */}
       <div className="md:hidden space-y-3">
         {filteredDocuments.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-gray-300 border border-gray-100">
+          <div className="bg-white rounded-2xl p-8 text-center text-gray-500 border border-gray-100">
             <ShieldCheck size={32} className="mx-auto mb-2" />
             <p className="text-sm font-semibold">Nenhum documento</p>
           </div>
@@ -358,14 +358,14 @@ export function ProjectDocuments() {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0 mr-2">
                   <div className="font-bold text-[#1a2332]">{doc.title}</div>
-                  <div className="text-gray-400 text-xs mt-0.5">{resolveProjectName(doc.obraId)}</div>
+                  <div className="text-gray-500 text-xs mt-0.5">{resolveProjectName(doc.obraId)}</div>
                 </div>
                 <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${statusStyle.badgeClasses}`}>
                   {statusStyle.icon} {statusStyle.label}
                 </span>
               </div>
               <div className="text-gray-500 text-xs mb-2">{doc.type}</div>
-              <div className="flex items-center gap-3 text-xs text-gray-400">
+              <div className="flex items-center gap-3 text-xs text-gray-500">
                 {doc.issueDate  && <span>Emissão: {formatShortDate(doc.issueDate)}</span>}
                 {doc.expiryDate && (
                   <span>Venc.: <span className={
@@ -382,10 +382,10 @@ export function ProjectDocuments() {
                 )}
                 {canEditDocuments && (
                 <>
-                <button onClick={() => openEditModal(doc)} className="flex items-center gap-1.5 text-orange-500 text-xs font-semibold ml-auto">
+                <button onClick={() => openEditModal(doc)} className="flex items-center gap-1.5 text-orange-700 text-xs font-semibold ml-auto">
                   <Pencil size={13} /> Editar
                 </button>
-                <button onClick={() => openDeleteModal(doc)} className="flex items-center gap-1.5 text-red-500 text-xs font-semibold">
+                <button onClick={() => openDeleteModal(doc)} className="flex items-center gap-1.5 text-red-700 text-xs font-semibold">
                   <Trash2 size={13} /> Excluir
                 </button>
                 </>
@@ -404,7 +404,7 @@ export function ProjectDocuments() {
               <h2 className="text-xl font-black text-[#1a2332]">
                 {activeModal === 'add' ? 'Novo Documento' : 'Editar Documento'}
               </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-600"><X size={20} /></button>
             </div>
 
             <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -440,7 +440,7 @@ export function ProjectDocuments() {
                   <label htmlFor="projectdocuments-campo-4" className="block text-sm font-semibold text-gray-700 mb-1">
                     Status
                     {documentForm.expiryDate && (
-                      <span className="ml-1 text-[10px] text-gray-400">(auto por vencimento)</span>
+                      <span className="ml-1 text-[10px] text-gray-500">(auto por vencimento)</span>
                     )}
                   </label>
                   <select id="projectdocuments-campo-4" value={documentForm.status} onChange={e => setDocumentForm(p => ({ ...p, status: e.target.value as DocumentValidityStatus }))}
@@ -453,7 +453,7 @@ export function ProjectDocuments() {
 
                 <div>
                   <label htmlFor="projectdocuments-campo-5" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                    <Calendar size={13} className="text-gray-400" /> Data de Emissão
+                    <Calendar size={13} className="text-gray-500" /> Data de Emissão
                   </label>
                   <input id="projectdocuments-campo-5" type="date" value={documentForm.issueDate}
                     onChange={e => setDocumentForm(p => ({ ...p, issueDate: e.target.value }))}
@@ -462,7 +462,7 @@ export function ProjectDocuments() {
 
                 <div>
                   <label htmlFor="projectdocuments-campo-6" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                    <AlertTriangle size={13} className="text-yellow-500" /> Data de Vencimento
+                    <AlertTriangle size={13} className="text-yellow-700" /> Data de Vencimento
                   </label>
                   <input id="projectdocuments-campo-6" type="date" value={documentForm.expiryDate}
                     onChange={e => setDocumentForm(p => ({ ...p, expiryDate: e.target.value }))}
@@ -489,12 +489,12 @@ export function ProjectDocuments() {
                 <button type="button" onClick={() => fileInputRef.current?.click()}
                   className="w-full border-2 border-dashed border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#1a2332] hover:bg-gray-50 transition text-center">
                   {documentForm.file ? (
-                    <span className="flex items-center justify-center gap-2 text-green-600">
+                    <span className="flex items-center justify-center gap-2 text-green-700">
                       <FileText size={18} />
                       <span className="text-sm font-semibold">{documentForm.fileName || 'Arquivo anexado'}</span>
                     </span>
                   ) : (
-                    <span className="block text-gray-400">
+                    <span className="block text-gray-500">
                       <Upload size={20} className="mx-auto mb-1" />
                       <span className="block text-xs font-semibold">Clique para anexar o documento</span>
                       <span className="block text-xs mt-0.5">PDF, JPG ou PNG · PDF até 5 MB</span>
@@ -503,7 +503,7 @@ export function ProjectDocuments() {
                 </button>
                 {documentForm.file && (
                   <button type="button" onClick={() => setDocumentForm(p => ({ ...p, file: '', fileName: '' }))}
-                    className="mt-1 flex items-center gap-1 text-xs text-red-500 hover:text-red-700"><X size={12} /> Remover anexo</button>
+                    className="mt-1 flex items-center gap-1 text-xs text-red-700 hover:text-red-700"><X size={12} /> Remover anexo</button>
                 )}
                 <input id="projectdocuments-arquivo" ref={fileInputRef} type="file" accept={ACCEPTED_FILES} className="hidden" onChange={handleFileChange} />
               </div>
@@ -532,14 +532,14 @@ export function ProjectDocuments() {
             <div className="flex items-center justify-between mb-4 shrink-0">
               <div>
                 <h2 className="text-lg font-black text-[#1a2332]">{selectedDocument.title}</h2>
-                <p className="text-gray-400 text-xs">{selectedDocument.type} · {resolveProjectName(selectedDocument.obraId)}</p>
+                <p className="text-gray-500 text-xs">{selectedDocument.type} · {resolveProjectName(selectedDocument.obraId)}</p>
                 <div className="flex items-center gap-3 mt-1">
-                  {selectedDocument.issueDate  && <span className="text-xs text-gray-400">Emissão: {formatShortDate(selectedDocument.issueDate)}</span>}
-                  {selectedDocument.expiryDate && <span className="text-xs text-gray-400">Venc.: {formatShortDate(selectedDocument.expiryDate)}</span>}
-                  <span className="text-xs text-gray-400">Enviado por: {resolveTeamMemberName(selectedDocument.uploadedBy)}</span>
+                  {selectedDocument.issueDate  && <span className="text-xs text-gray-500">Emissão: {formatShortDate(selectedDocument.issueDate)}</span>}
+                  {selectedDocument.expiryDate && <span className="text-xs text-gray-500">Venc.: {formatShortDate(selectedDocument.expiryDate)}</span>}
+                  <span className="text-xs text-gray-500">Enviado por: {resolveTeamMemberName(selectedDocument.uploadedBy)}</span>
                 </div>
               </div>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 shrink-0 ml-4"><X size={20} /></button>
+              <button onClick={closeModal} className="text-gray-500 hover:text-gray-600 shrink-0 ml-4"><X size={20} /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto">
@@ -548,7 +548,7 @@ export function ProjectDocuments() {
                   className="w-full rounded-xl border border-gray-100 object-contain max-h-[60vh]" />
               ) : selectedDocument.file?.startsWith('data:application/pdf') ? (
                 <div className="bg-gray-50 rounded-xl p-8 text-center">
-                  <FileText size={48} className="mx-auto mb-4 text-gray-400" />
+                  <FileText size={48} className="mx-auto mb-4 text-gray-500" />
                   <p className="text-sm font-bold text-gray-700 mb-1">{selectedDocument.fileName ?? 'documento.pdf'}</p>
                   <a href={selectedDocument.file} download={selectedDocument.fileName ?? 'documento.pdf'}
                     className="inline-flex items-center gap-2 bg-[#1a2332] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#243347] transition">
@@ -556,7 +556,7 @@ export function ProjectDocuments() {
                   </a>
                 </div>
               ) : (
-                <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-400">
+                <div className="bg-gray-50 rounded-xl p-8 text-center text-gray-500">
                   <Eye size={32} className="mx-auto mb-2" />
                   <p className="text-sm">Prévia não disponível</p>
                   {selectedDocument.file && (
@@ -571,7 +571,7 @@ export function ProjectDocuments() {
 
             {selectedDocument.notes && (
               <div className="mt-4 bg-gray-50 rounded-xl p-3 shrink-0">
-                <p className="text-xs font-semibold text-gray-400 mb-1">Observações</p>
+                <p className="text-xs font-semibold text-gray-500 mb-1">Observações</p>
                 <p className="text-sm text-gray-700">{selectedDocument.notes}</p>
               </div>
             )}
@@ -584,7 +584,7 @@ export function ProjectDocuments() {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
             <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={24} className="text-red-500" />
+              <Trash2 size={24} className="text-red-700" />
             </div>
             <h2 className="text-xl font-black text-[#1a2332] mb-2">Excluir Documento</h2>
             <p className="text-gray-500 text-sm mb-6">

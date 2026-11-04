@@ -63,7 +63,7 @@ function NavigationSidebar({ onClose }: { onClose?: () => void }) {
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                 isActive
-                  ? 'bg-[#E8821A] text-white shadow-lg'
+                  ? 'bg-[#E8821A] text-gray-900 shadow-lg'
                   : 'text-gray-400 hover:bg-white/5 hover:text-white'
               }`
             }
