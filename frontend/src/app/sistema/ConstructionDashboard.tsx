@@ -9,7 +9,7 @@ import {
   Building2, Clock, TrendingUp, AlertTriangle, Bell, CheckCircle2,
   Info, AlertCircle, X, Eye,
 } from 'lucide-react';
-import { nomeNoGrafico, dadosPlanejadoRealizado } from '../utils/dashboard';
+import { nomeNoGrafico, dadosPlanejadoRealizado, EIXO_NOMES_GRAFICO } from '../utils/dashboard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -175,10 +175,10 @@ export function ConstructionDashboard() {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="font-black text-[#1a2332] text-lg mb-5">Progresso por Obra</h2>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={projectProgressChartData} layout="vertical" margin={{ left: 100, right: 20 }}>
+            <BarChart data={projectProgressChartData} layout="vertical" margin={{ left: EIXO_NOMES_GRAFICO.margemEsquerda, right: 20 }}>
               <CartesianGrid key="bar-grid" strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
               <XAxis key="bar-xaxis" type="number" domain={[0, 100]} tick={{ fontSize: 11 }} tickFormatter={v => `${v}%`} />
-              <YAxis key="bar-yaxis" type="category" dataKey="name" tick={{ fontSize: 11 }} width={95} />
+              <YAxis key="bar-yaxis" type="category" dataKey="name" tick={{ fontSize: 11 }} width={EIXO_NOMES_GRAFICO.largura} />
               <Tooltip key="bar-tooltip" formatter={(v) => [`${v}%`, 'Progresso']} />
               <Bar key="bar-progresso" dataKey="progresso" name="Progresso" fill="#3B82F6" radius={[0, 4, 4, 0]} isAnimationActive={false} />
             </BarChart>
