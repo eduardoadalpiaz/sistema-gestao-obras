@@ -1,6 +1,6 @@
 // Dados do gráfico "Planejado vs Realizado": por obra, quanto do prazo já passou e quanto foi feito.
 import { describe, test, expect } from 'vitest';
-import { nomeNoGrafico, dadosPlanejadoRealizado } from '../src/app/utils/dashboard';
+import { nomeNoGrafico, dadosPlanejadoRealizado, EIXO_NOMES_GRAFICO } from '../src/app/utils/dashboard';
 
 const obra = (id: string, name: string) => ({ id, name }) as never;
 
@@ -29,5 +29,18 @@ describe('dados do gráfico planejado x realizado', () => {
 
   test('sem obras, não há linhas', () => {
     expect(dadosPlanejadoRealizado([], () => 0, () => 0)).toEqual([]);
+  });
+});
+
+describe('espaço dos nomes no gráfico de progresso (celular)', () => {
+  test('o eixo cabe o maior nome e a margem não soma espaço extra', () => {
+    const maiorNome = nomeNoGrafico('x'.repeat(30), 99);
+
+    expect(EIXO_NOMES_GRAFICO.margemEsquerda).toBe(0);
+    expect(EIXO_NOMES_GRAFICO.largura).toBeGreaterThanOrEqual(maiorNome.length * 5.5);
+  });
+
+  test('o eixo ocupa no máximo um terço de uma tela de celular de 375px', () => {
+    expect(EIXO_NOMES_GRAFICO.largura + EIXO_NOMES_GRAFICO.margemEsquerda).toBeLessThanOrEqual(375 / 3);
   });
 });
