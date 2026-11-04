@@ -103,6 +103,10 @@ A restauração roda numa transação única: se algo falhar, nada fica pela met
 
 Veja o [`CONTRIBUTING.md`](CONTRIBUTING.md): como rodar, como testar, o ciclo de TDD e como abrir um pull request.
 
+## Licença
+
+MIT. Veja o arquivo [`LICENSE`](LICENSE).
+
 ## Autor
 
 Eduardo Alberto Dal Piaz — Universidade Católica de Santa Catarina.
