@@ -294,10 +294,10 @@ export function ProjectSchedule() {
                         </div>
                         {canEditSchedule && (
                           <div className="flex gap-2">
-                            <button onClick={() => openEditStageModal(stage)} className="text-orange-500 hover:text-orange-700 transition">
+                            <button onClick={() => openEditStageModal(stage)} aria-label={`Editar etapa ${stage.name}`} className="text-orange-500 hover:text-orange-700 transition">
                               <Pencil size={15} />
                             </button>
-                            <button onClick={() => setStagePendingDeleteId(stage.id)} className="text-red-500 hover:text-red-700 transition">
+                            <button onClick={() => setStagePendingDeleteId(stage.id)} aria-label={`Excluir etapa ${stage.name}`} className="text-red-500 hover:text-red-700 transition">
                               <Trash2 size={15} />
                             </button>
                           </div>

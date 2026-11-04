@@ -240,6 +240,7 @@ export function ProjectDocuments() {
           />
         </div>
         <select
+          aria-label="Filtrar por obra"
           value={selectedProjectId}
           onChange={e => setSelectedProjectId(e.target.value)}
           className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#1a2332] transition bg-white min-w-[220px]"

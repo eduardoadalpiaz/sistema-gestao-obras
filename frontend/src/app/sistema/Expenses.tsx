@@ -209,6 +209,7 @@ export function Expenses() {
           />
         </div>
         <select
+          aria-label="Filtrar por obra"
           value={selectedProjectId}
           onChange={e => setSelectedProjectId(e.target.value)}
           className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#E8821A] transition bg-white min-w-[220px]"

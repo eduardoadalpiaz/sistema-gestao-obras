@@ -350,6 +350,7 @@ export function Projects() {
           />
         </div>
         <select
+          aria-label="Filtrar por status"
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
           className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#E8821A] transition bg-white"
