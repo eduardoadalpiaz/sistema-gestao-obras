@@ -22,7 +22,7 @@ async function abrir(role: string, rotas: Parameters<typeof mockApi>[0] = {}) {
 }
 
 // campos do formulário, achados pelo rótulo (como uma pessoa, ou um leitor de tela, encontraria)
-const ROTULOS: Record<string, RegExp> = { name: /Nome Completo/, email: /Email Corporativo/, password: /Senha/, role: /Cargo/ };
+const ROTULOS: Record<string, RegExp> = { name: /Nome Completo/, email: /E-mail Corporativo/, password: /Senha/, role: /Cargo/ };
 const campo = (nome: string) => screen.getByLabelText(ROTULOS[nome]) as HTMLInputElement;
 // linha da Maria na tabela (a versão de computador)
 const linhaMaria = () => screen.getAllByText('Maria Souza')[0].closest('tr') as HTMLElement;

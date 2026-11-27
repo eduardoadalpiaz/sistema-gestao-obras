@@ -65,14 +65,14 @@ export function LoginPage() {
               <Building2 size={32} className="text-white" />
             </div>
             <h1 className="text-[#1a2332] text-2xl font-black text-center">Dal Piaz Incorporadora</h1>
-            <p className="text-blue-600 text-sm mt-1 font-medium">Sistema de Gestão de Obras</p>
+            <p className="text-blue-600 text-sm mt-1 font-medium">Gestão de Obras</p>
           </div>
 
           {!pendingVerificationUser ? (
             /* Formulário de login */
             <form onSubmit={handleLoginSubmit} className="space-y-5">
               <div>
-                <label htmlFor="loginpage-campo-1" className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                <label htmlFor="loginpage-campo-1" className="block text-sm font-semibold text-gray-700 mb-1.5">E-mail</label>
                 <div className="relative">
                   <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
                   <input id="loginpage-campo-1"
