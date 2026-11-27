@@ -169,7 +169,7 @@ export function TeamManagement() {
           <thead>
             <tr className="border-b border-gray-100">
               <th className="text-left text-gray-500 font-semibold px-6 py-4">Nome</th>
-              <th className="text-left text-gray-500 font-semibold px-4 py-4">Email Corporativo</th>
+              <th className="text-left text-gray-500 font-semibold px-4 py-4">E-mail Corporativo</th>
               <th className="text-left text-gray-500 font-semibold px-4 py-4">Cargo</th>
               <th className="text-left text-gray-500 font-semibold px-4 py-4">Status</th>
               <th className="text-left text-gray-500 font-semibold px-4 py-4">Verificado</th>
@@ -303,7 +303,7 @@ export function TeamManagement() {
               </div>
 
               <div>
-                <label htmlFor="user-email" className="block text-sm font-semibold text-gray-700 mb-1">Email Corporativo *</label>
+                <label htmlFor="user-email" className="block text-sm font-semibold text-gray-700 mb-1">E-mail Corporativo *</label>
                 <input
                   id="user-email" name="email" type="email" value={memberForm.email}
                   onChange={e => { setIsEmailTouched(true); handleMemberFormChange(e); }}
@@ -312,7 +312,7 @@ export function TeamManagement() {
                 />
                 {showCorporateEmailWarning && (
                   <p className="text-yellow-600 text-xs mt-1 flex items-center gap-1">
-                    <Info size={11} /> Recomendamos usar o email corporativo @dalpiazincorporadora.com.br
+                    <Info size={11} /> Recomendamos usar o e-mail corporativo @dalpiazincorporadora.com.br
                   </p>
                 )}
               </div>
