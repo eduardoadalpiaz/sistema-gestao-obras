@@ -25,6 +25,7 @@ const documentosRoutes    = require("./routes/documentos");
 const notificationsRoutes = require("./routes/notifications");
 const auditRoutes         = require("./routes/audit");
 const aiRoutes            = require("./routes/ai");
+const { comStatusDeAtraso } = require("./utils/validators");
 
 const app = express();
 
@@ -128,7 +129,8 @@ app.get("/data", authenticate, asyncHandler(async (req, res) => {
     isAdmin ? { ...u, verificationCode } : u
   );
 
-  res.json({ users: safeUsers, obras, stages, notifications, gastos, documentos, audit });
+  // etapa vencida e não concluída sai como Atrasada
+  res.json({ users: safeUsers, obras, stages: stages.map((s) => comStatusDeAtraso(s)), notifications, gastos, documentos, audit });
 }));
 
 // Tempo real: conexão aberta que recebe um aviso quando algo muda.

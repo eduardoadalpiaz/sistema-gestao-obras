@@ -44,4 +44,21 @@ function isProgress(value) {
   return Number.isFinite(n) && n >= 0 && n <= 100;
 }
 
-module.exports = { checkFileField, cleanFileName, isStringList, isProgress };
+// datas AAAA-MM-DD: o fim não pode vir antes do início (só confere quando as duas vieram)
+function dataForaDeOrdem(inicio, fim) {
+  return Boolean(inicio) && Boolean(fim) && String(fim) < String(inicio);
+}
+
+// hoje no horário de Brasília, no formato AAAA-MM-DD
+function hojeBrasil() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+
+// etapa não concluída com o término previsto já passado aparece como Atrasada
+function comStatusDeAtraso(stage, hoje = hojeBrasil()) {
+  const aberta = stage.status === "Não iniciada" || stage.status === "Em andamento";
+  if (aberta && stage.plannedEnd && String(stage.plannedEnd) < hoje) return { ...stage, status: "Atrasada" };
+  return stage;
+}
+
+module.exports = { checkFileField, cleanFileName, isStringList, isProgress, dataForaDeOrdem, comStatusDeAtraso };

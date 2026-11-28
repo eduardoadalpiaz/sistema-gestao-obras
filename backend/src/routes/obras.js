@@ -3,16 +3,17 @@ const express = require("express");
 const { insertRow, updateRow, deleteRow } = require("../repo");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { requireRole } = require("../middleware/auth");
-const { isStringList, isProgress } = require("../utils/validators");
+const { isStringList, isProgress, dataForaDeOrdem } = require("../utils/validators");
 
 // roteador deste assunto; o app.js o conecta ao caminho
 const router = express.Router();
 const bad = (res, message) => res.status(400).json({ message });
 
-// confere os campos que têm regra própria: progresso (0 a 100) e lista de nomes da equipe
+// confere os campos que têm regra própria: progresso (0 a 100), lista de nomes da equipe e ordem das datas
 function checkObra(body) {
   if (body.progress !== undefined && !isProgress(body.progress)) return "Progresso deve ficar entre 0 e 100.";
   if (body.teamMembers !== undefined && !isStringList(body.teamMembers, 100, 120)) return "Lista de nomes da equipe inválida.";
+  if (dataForaDeOrdem(body.startDate, body.endDate)) return "A data de término não pode ser antes da data de início.";
   return null;
 }
 

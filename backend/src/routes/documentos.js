@@ -4,7 +4,7 @@ const express = require("express");
 const { insertRow, updateRowNoTimestamp, deleteRow } = require("../repo");
 const { asyncHandler } = require("../middleware/asyncHandler");
 const { requireRole } = require("../middleware/auth");
-const { checkFileField, cleanFileName } = require("../utils/validators");
+const { checkFileField, cleanFileName, dataForaDeOrdem } = require("../utils/validators");
 
 // roteador deste assunto; o app.js o conecta ao caminho
 const router = express.Router();
@@ -15,6 +15,8 @@ function readDocument(body, userId) {
   // confere tipo, tamanho e conteúdo do arquivo
   const fileError = checkFileField(body.file, "Arquivo");
   if (fileError) return { error: fileError };
+  // o vencimento não pode ser antes da emissão
+  if (dataForaDeOrdem(body.issueDate, body.expiryDate)) return { error: "O vencimento não pode ser antes da emissão." };
   const { uploadedBy, ...rest } = body;
   const data = { ...rest };
   if (body.fileName !== undefined) data.fileName = cleanFileName(body.fileName);
