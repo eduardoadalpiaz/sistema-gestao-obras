@@ -464,7 +464,7 @@ export function ProjectDocuments() {
                   <label htmlFor="projectdocuments-campo-6" className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1">
                     <AlertTriangle size={13} className="text-yellow-700" /> Data de Vencimento
                   </label>
-                  <input id="projectdocuments-campo-6" type="date" value={documentForm.expiryDate}
+                  <input id="projectdocuments-campo-6" type="date" min={documentForm.issueDate || undefined} value={documentForm.expiryDate}
                     onChange={e => setDocumentForm(p => ({ ...p, expiryDate: e.target.value }))}
                     className={baseInputClass} />
                   {documentForm.expiryDate && (

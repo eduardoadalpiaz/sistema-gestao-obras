@@ -380,11 +380,11 @@ export function ProjectSchedule() {
                 </div>
                 <div>
                   <label htmlFor="projectschedule-campo-4" className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Término *</label>
-                  <input id="projectschedule-campo-4" type="date" name="plannedEnd" value={stageForm.plannedEnd} onChange={handleStageFormChange} required className={sharedInputClass} />
+                  <input id="projectschedule-campo-4" type="date" name="plannedEnd" min={stageForm.plannedStart || undefined} value={stageForm.plannedEnd} onChange={handleStageFormChange} required className={sharedInputClass} />
                 </div>
                 <div>
                   <label htmlFor="projectschedule-campo-5" className="block text-sm font-semibold text-gray-700 mb-1">Data de Conclusão Real</label>
-                  <input id="projectschedule-campo-5" type="date" name="actualEnd" value={stageForm.actualEnd} onChange={handleStageFormChange} className={sharedInputClass} />
+                  <input id="projectschedule-campo-5" type="date" name="actualEnd" min={stageForm.plannedStart || undefined} value={stageForm.actualEnd} onChange={handleStageFormChange} className={sharedInputClass} />
                 </div>
                 <div>
                   <label htmlFor="projectschedule-campo-6" className="block text-sm font-semibold text-gray-700 mb-1">Status</label>

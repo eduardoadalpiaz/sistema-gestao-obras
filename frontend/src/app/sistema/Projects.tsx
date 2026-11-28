@@ -694,7 +694,7 @@ export function Projects() {
                   </div>
                   <div>
                     <label htmlFor="projects-campo-19" className="block text-sm font-semibold text-gray-700 mb-1">Data Prevista de Término *</label>
-                    <input id="projects-campo-19" type="date" name="endDate" value={projectForm.endDate} onChange={handleFieldChange} required className={baseInputClass} />
+                    <input id="projects-campo-19" type="date" name="endDate" min={projectForm.startDate || undefined} value={projectForm.endDate} onChange={handleFieldChange} required className={baseInputClass} />
                   </div>
                 </div>
 
